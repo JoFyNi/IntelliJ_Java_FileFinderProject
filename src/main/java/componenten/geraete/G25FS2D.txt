@@ -1,0 +1,7 @@
+Verfügbarkeit: true 
+Service Tag: G25FS2D 
+Windows Version: Win 10 
+Prozessor: I5-5500 
+Grafikkarte: RTX A400 
+Ram: 8GB DDR4 
+Wird als: Präsentationen genutzt 
