@@ -5,19 +5,21 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import javax.swing.*;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.*;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
 import java.util.TreeMap;
+
+import static componenten.searchThreadWithSelectedType.Finder.PathResult;
 
 public class MainUI {
     // JFrame components
@@ -33,15 +35,16 @@ public class MainUI {
     private JButton scannBtn;
     private JButton searchListBtn;
     // export parameter
-    private String typ;
+    private String typ = "txt";
     private String driver;
 
 
     // Tutorials/ help
+    // editable JTable https://www.codejava.net/java-se/swing/editable-jtable-example
     // https://www.youtube.com/watch?v=xk4_1vDrzzo&list=TLPQMjMxMTIwMjJsbEKGZ80Atg&index=6
-    public MainUI() throws FileNotFoundException {
+    public MainUI() throws FileNotFoundException, InterruptedException {
         pathInput.setText("C:\\Users\\j.nievelstein\\Java\\Ausleihe\\src\\main\\java\\componenten\\geraete\\");
-        fileInput.setText("_Briefvorlagegrbv");//G25FS2D
+        fileInput.setText("_Briefvorlagegrbv");
         buttons();
         selectDrivers();
         selectDataType();
@@ -49,9 +52,10 @@ public class MainUI {
         //exportList();
         readObjects();
         //rerere();
+        durationTimer();
     }
     private void rerere() {
-    ArrayList<File>list = listDirectories(new File("C:\\Users\\j.nievelstein\\Java\\Ausleihe\\src\\main\\java\\componenten\\geraete\\"), "G25FS2D", null, false, false);
+    ArrayList<File>list = listDirectories(new File("C:\\Users\\j.nievelstein\\Java\\Ausleihe\\src\\main\\java\\componenten\\geraete\\"), "", null, false, false);
     for (int i = 0; i<list.size();i++) {
         System.out.println("HIER!=!==!"+list.get(i).toString());
 
@@ -103,26 +107,15 @@ public class MainUI {
                 {
                     searchThreadWithSelectedType finder = new searchThreadWithSelectedType(fileInput.getText(), typ);
                     finder.start();
-                    //readSelected(new File(pathInput.getText() + fileInput.getText() + ".txt"));
-                    // entfernen?
-                    listTable.getModel().addTableModelListener(new TableModelListener() {
-                        @Override
-                        public void tableChanged(TableModelEvent e) {
-                            if (e.getType()==TableModelEvent.INSERT||e.getType()==TableModelEvent.DELETE) {
-                                // Do something
-                            }
-                        }
-                    });
-                    if (fileInput.getText() == "") {
-                        // get All files
-                        Collection<File> all = new ArrayList<File>();
-                        searchAll(new File(pathInput.getText()), all);
-                    }
+                } else if (fileInput.getText() == "") {
+                    // get All files
+                    Collection<File> all = new ArrayList<File>();
+                    searchAll(new File(pathInput.getText()), all);
                 }
                 super.keyPressed(e);
             }
         });
-        // searching with oathInput value
+        // searching with pathInput value
         pathInput.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -132,8 +125,6 @@ public class MainUI {
                 String directoryName = PATH.concat(String.valueOf(this.getClass()));
                 File directory = new File(directoryName);
                 if (key == KeyEvent.VK_ENTER) {
-                    //Object[][] data = {{fileInput.getText(), pathInput.getText(), "autor", "datum"},{"B4FG98E", "C://user//temps", "Heinz", 29.03}, {"OS26J6E", "C://user//documents", "Heinrich", 15.11}, {"Laptop", "OK29J2", "Ernst", 09.08}};
-                    //listTable.setModel(new DefaultTableModel(data, headings));  // data and Header
                     if (directory.exists()) {
                         // get All files
                         Collection<File> all = new ArrayList<File>();
@@ -207,6 +198,29 @@ public class MainUI {
          * -> Import/Export
          * -> schreiben
          */
+    }
+
+    static Path getResultToListOnTable(Path file){
+        PathResult = file;
+        return PathResult;
+    }
+    private void durationTimer() throws InterruptedException {
+        if (PathResult != null) {
+            System.out.println("!=null");
+            ResultFabricator(PathResult);
+        }
+        Thread.sleep(1000);
+    }
+    void ResultFabricator(Path ResultFiles){
+        Path name = ResultFiles.getFileName();
+        Object[] columnData = {"Name", "Pfad", "Autor"};
+        Object[] row = new Object[3];
+        DefaultTableModel model = new DefaultTableModel();
+        model.setColumnIdentifiers(columnData);
+        this.listTable.setModel(model);
+        model.insertRow(0, new Object[]{row[0] = name,row[1] = ResultFiles.getParent(), row[2] = ResultFiles.getFileSystem()});
+        model.addRow(row);
+        System.out.printf(ResultFiles + System.lineSeparator() + "got it");
     }
 
 
@@ -487,6 +501,36 @@ public class MainUI {
             FileOutputStream fileOutputStream = new FileOutputStream(new File("U:\\Test.xlsx"));
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public class JTableHeaderMouseClickDemo extends JFrame {
+
+        private JTable table;
+
+        public JTableHeaderMouseClickDemo() {
+            super("JTable Column Header Mouse Click Demo");
+            // constructs the table
+            String[] columnNames = new String[]{"Title", "Author", "Published Date"};
+            String[][] rowData = new String[][]{
+                    {"Spring in Action", "Craig Walls", "June 29th 2011"},
+                    {"Struts 2 in Action", "Donald Brown", "May 1st 2008"},
+                    {"Hibernate Made Easy", "Cameron Wallace McKenzie", "April 25th 2008"},
+            };
+
+            table = new JTable(rowData, columnNames);
+            table.setAutoCreateRowSorter(true);
+
+            JTableHeader header = table.getTableHeader();
+            //header.addMouseListener(new TableHeaderMouseListener(table));
+
+            add(new JScrollPane(table));
+
+            setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            setSize(640, 150);
+            setLocationRelativeTo(null);
+
+            new JTableHeaderMouseClickDemo().setVisible(true); // <- when button open get clicked
         }
     }
 }

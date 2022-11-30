@@ -6,10 +6,12 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 
+import static componenten.MainUI.getResultToListOnTable;
 import static java.nio.file.FileVisitResult.CONTINUE;
 
 public class searchThreadWithSelectedType extends Thread {
 
+    // fileSystem -> https://www.straub.as/java/history/file-files-paths-path-fileSystems-fileSystem-fileStore.html
     private static int finalTotal = 0;
 
     public searchThreadWithSelectedType(String file, String typ) {
@@ -37,7 +39,6 @@ public class searchThreadWithSelectedType extends Thread {
             }
             finder.done();
         }
-
         System.out.println("Total Matched Number of Files : " + finalTotal);
     }
 
@@ -46,6 +47,7 @@ public class searchThreadWithSelectedType extends Thread {
 
         private final PathMatcher matcher;
         private int numMatches = 0;
+        public static Path PathResult;
 
         Finder(String pattern) {
             matcher = FileSystems.getDefault()
@@ -54,11 +56,13 @@ public class searchThreadWithSelectedType extends Thread {
 
         // Compares the glob pattern against
         // the file or directory name.
-        void find(Path file) {
+        void find(Path file) throws InterruptedException {
             Path name = file.getFileName();
             if (name != null && matcher.matches(name)) {
                 numMatches++;
-                System.out.println(file);
+                System.out.println(file +" (void find) " + name);
+                PathResult = file;
+                getResultToListOnTable(PathResult);
             }
         }
 
@@ -75,7 +79,11 @@ public class searchThreadWithSelectedType extends Thread {
         @Override
         public FileVisitResult visitFile(Path file,
                                          BasicFileAttributes attrs) {
-            find(file);
+            try {
+                find(file);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
             return CONTINUE;
         }
 
@@ -84,7 +92,11 @@ public class searchThreadWithSelectedType extends Thread {
         @Override
         public FileVisitResult preVisitDirectory(Path dir,
                                                  BasicFileAttributes attrs) {
-            find(dir);
+            try {
+                find(dir);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
             return CONTINUE;
         }
 

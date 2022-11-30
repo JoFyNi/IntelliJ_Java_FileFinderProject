@@ -12,14 +12,14 @@ public class Main {
             public void run() {
                 try {
                     createGUI();
-                } catch (FileNotFoundException e) {
+                } catch (FileNotFoundException | InterruptedException e) {
                     throw new RuntimeException(e);
                 }
             }
         });
     }
 
-    private static void createGUI() throws FileNotFoundException {
+    private static void createGUI() throws FileNotFoundException, InterruptedException {
         MainUI ui = new MainUI();
         JPanel root = ui.getRootPanel();
         JFrame frame = new JFrame();
