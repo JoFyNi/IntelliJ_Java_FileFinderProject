@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 public class MainUI {
+    // JFrame components
     private JPanel rootPanel;
     private JTable listTable;
     private JComboBox driverSelector;
@@ -30,11 +31,11 @@ public class MainUI {
     private JButton openObject;
     private JButton updateBtn;
     private JButton scannBtn;
-    // new
+    private JButton searchListBtn;
+    // export parameter
     private String typ;
     private String driver;
 
-    //
 
     // Tutorials/ help
     // https://www.youtube.com/watch?v=xk4_1vDrzzo&list=TLPQMjMxMTIwMjJsbEKGZ80Atg&index=6
@@ -88,13 +89,12 @@ public class MainUI {
         } return list;
     }
 
-
     public JPanel getRootPanel() {
         return rootPanel;
     }
 
     private void buttons() {
-        //suche durch File namen
+        // searching with fileInput value
         fileInput.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -122,7 +122,7 @@ public class MainUI {
                 super.keyPressed(e);
             }
         });
-        // suche durch Pfad
+        // searching with oathInput value
         pathInput.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -160,8 +160,8 @@ public class MainUI {
                 super.keyPressed(e);
             }
         });
-        // updated den table
         updateBtn.addActionListener(new ActionListener() {
+            // updates the JTable
             @Override
             public void actionPerformed(ActionEvent e) {
                 Collection<File> all = new ArrayList<File>();
@@ -169,12 +169,21 @@ public class MainUI {
             }
         });
         scannBtn.addActionListener(new ActionListener(){
+            //scann for existing drivers
             @Override
             public void actionPerformed(ActionEvent e){
                 driverScann driverScannThread = new driverScann();
                 driverScannThread.start();
                 //searchThreadWithSelectedType finder = new searchThreadWithSelectedType(fileInput.getText(), typ);
                 //finder.start();
+            }
+        });
+        searchListBtn.addActionListener(new ActionListener() {
+            // opens a JFrame with TextArea -> list into searchThread
+            // allows to search for more than 1 file at the time
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new searchForFileList();
             }
         });
         /**
@@ -200,6 +209,7 @@ public class MainUI {
          */
     }
 
+
     private static void printSearchResult(File file, Collection<File> all) {
         File[] children = file.listFiles();
         if (children != null) {     //scan des Ordners (anzahl Dateien, Typ, name, etc..)
@@ -218,7 +228,8 @@ public class MainUI {
         }
     }
 
-    // excel into JTable
+    // Excel into JTable -> not working yet
+    // when improvement for searching is finish -> finish exports/imports
     public void givenWorkbook_whenInsertRowBetween_thenRowCreated() throws IOException {
         String fileLocation = "U:\\TestMappe.xlsx";
 
@@ -287,10 +298,10 @@ public class MainUI {
         }
     }
     private void searchAll(File file, Collection<File> all) {
-        File[] files = file.listFiles();
+        File[] files = file.listFiles();        // File [] files = list of all files
         if (files != null) {
-            for (File child : files) {
-                all.add(child);
+            for (File child : files) {          // difference between the child(one file) and all files
+                all.add(child);                 // add the selected file(child) to all files and repeat
                 searchAll(child, all);
                 //Object[][] data = {{child, all}};
                 //listTable.setModel(new DefaultTableModel(data, headings));  // data and Header
@@ -298,7 +309,6 @@ public class MainUI {
         }
     }
     private void readSelected(File file) throws FileNotFoundException {
-        //String file = "C:\\Users\\j.nievelstein\\Java\\Ausleihe\\src\\main\\java\\componenten\\geraete\\G25FS2D.txt";
         BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
         try {
             String line;
@@ -318,7 +328,8 @@ public class MainUI {
         }
     }
 
-
+    // ComboBox for driver Selection -> select driver for small amount (search speed increase)
+    // not working correctly -> need improvement
     private void selectDrivers() {   // comboBox
         driverSelector.setModel(new DefaultComboBoxModel(new String[]{"C", "Q", "W"}));
         driverSelector.addActionListener(new ActionListener() {
@@ -341,8 +352,9 @@ public class MainUI {
         });
     }
 
-    private void selectDataType() {   // comboBox
-        // mit verfügbarkeit vergleichen, wenn == true, zeige true, wenn == false, zeige false
+    // ComboBox for fileType selection
+    // improvement -> parameter for all kind of types
+    private void selectDataType() {
         dataType.setModel(new DefaultComboBoxModel(new String[]{"txt", "ods","pdf","ai","eps","psd","doc","docx","ppt","pptx","pps","ppsm","ppsx","xls","xlsx"}));
 
         dataType.addActionListener(new ActionListener() {
@@ -451,11 +463,11 @@ public class MainUI {
 //https://cdn.crunchify.com/wp-content/uploads/2020/10/In-Java-How-to-Save-and-Load-Data-from-a-File-Simple-Production-Ready-Utility-for-File-IO-Read-Write-Operation.png
     }
 
-
+    // x = columns, y = rows
     private String getCellVal(int x, int y) {
         return listTable.getValueAt(x, y).toString();
     }
-
+    // not implemented yet (not working correctly)
     private void exportList() {
 
         TreeMap<String, Object[]> data = new TreeMap<>();

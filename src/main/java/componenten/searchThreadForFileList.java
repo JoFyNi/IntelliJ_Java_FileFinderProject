@@ -19,6 +19,7 @@ public class searchThreadForFileList extends Thread {
 
         paths = File.listRoots();
 
+        // children -> list of files (0)
         File[] children = file.listFiles();
         if (children != null) {     //scan des Ordners (anzahl Dateien, Typ, name, etc..)
             for (File child : children) {
@@ -46,6 +47,7 @@ public class searchThreadForFileList extends Thread {
                 }
 
                 System.out.println("Total Matched Number of Files : " + finalTotal);
+                new searchThreadForFileList(child, fileList);
             }
         }
 

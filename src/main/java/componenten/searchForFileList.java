@@ -36,6 +36,7 @@ public class searchForFileList extends JFrame {
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                // read list and give it to searchThread
                 System.out.println("try");
                 Collection<File> files = new ArrayList<File>();
                 File file = new File(textArea.getText());
