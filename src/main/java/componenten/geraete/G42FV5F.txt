@@ -1,6 +1,0 @@
-Service Tag: G42FV5F
-Windows Version: Win11
-Prozessor: Intel I7-7420
-Grafikkarte: RTX4200
-Ram: 16GB DDR4
-Wird als: Homeoffice genutzt
