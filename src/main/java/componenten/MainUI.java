@@ -261,7 +261,7 @@ public class MainUI {
         workbook.write(outputStream);
         File file = new File("C:\\Users\\j.nievelstein\\Java\\Ausleihe\\src\\main\\java\\componenten\\geraete");
         final int expectedRowResult = 5;
-        Assertions.assertEquals(expectedRowResult, workbook.getSheetAt(0).getLastRowNum());
+        //Assertions.assertEquals(expectedRowResult, workbook.getSheetAt(0).getLastRowNum());
         outputStream.close();
         file.delete();
         workbook.close();
