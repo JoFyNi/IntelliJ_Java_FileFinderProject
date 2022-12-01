@@ -278,7 +278,7 @@ public class MainUI {
         System.out.printf(ResultFiles + System.lineSeparator() + "got it");
     }
 
-
+    // does not work right
     private static int finalTotal = 0;
 
     private void searchThreadWithSelectedType(String file, String typ) {
