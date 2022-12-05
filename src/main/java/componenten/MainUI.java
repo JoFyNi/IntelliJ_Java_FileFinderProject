@@ -282,23 +282,16 @@ public class MainUI {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // does not work right
     private static int finalTotal = 0;
-
     private void searchThreadWithSelectedType(String file, String typ) {
         File[] paths;
         FileSystemView fsv = FileSystemView.getFileSystemView();
-
         paths = File.listRoots();
-
         for (File path : paths) {
             String str = path.toString();
             String slash = "\\";
-
             String s = new StringBuilder(str).append(slash).toString();
-
             Path startingDir = Paths.get(s);
-
             String pattern = file +"."+ typ;
-
             Finder finder = new Finder(pattern);
             try {
                 System.out.println("searching for "+ pattern);
@@ -310,37 +303,37 @@ public class MainUI {
         }
         System.out.println("Total Matched Number of Files : " + finalTotal);
     }
-
     private class Finder extends SimpleFileVisitor<Path> {
-
         private final PathMatcher matcher;
         private int numMatches = 0;
-
         Finder(String pattern) {
             matcher = FileSystems.getDefault()
                     .getPathMatcher("glob:" + pattern);
         }
-
         // Compares the glob pattern against
         // the file or directory name.
         void find(Path filePath) throws InterruptedException {
+            FileSystemView fsv = FileSystemView.getFileSystemView();
+            int a = 1;
             Path name = filePath.getFileName();
             if (name != null && matcher.matches(name)) {
                 numMatches++;
                 System.out.println(filePath);
-
-                FileSystemView fsv = FileSystemView.getFileSystemView();
-
                 Object[] row = new Object[2];
                 DefaultTableModel model = (DefaultTableModel) listTable.getModel();
                 model.setColumnIdentifiers(new String[]{"Files Names"});
                 listTable.setModel(model);
-                // numMatcher -> +1 every round -> change it!
-                for (int i = 0;i<numMatches; i++) {
+                /**
+                 * a = 1, i = 0
+                 * if i < a create new row with filePath
+                 * than make a+1 so "a" is bigger than "i" again for the next round
+                 */
+                for (int i = 0; i <a ; i++) {
                     row[0] = filePath;
                     row[1] = fsv;
                     model.addRow(row);
                 }
+                a++;
             }
         }
         // Prints the total number of
@@ -350,7 +343,6 @@ public class MainUI {
                     + numMatches);
             finalTotal = finalTotal + numMatches;
         }
-
         // Invoke the pattern matching
         // method on each file.
         @Override
@@ -363,7 +355,6 @@ public class MainUI {
             }
             return CONTINUE;
         }
-
         // Invoke the pattern matching
         // method on each directory.
         @Override
@@ -376,7 +367,6 @@ public class MainUI {
             }
             return CONTINUE;
         }
-
         @Override
         public FileVisitResult visitFileFailed(Path file,
                                                IOException exc) {
