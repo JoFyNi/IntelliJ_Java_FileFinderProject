@@ -290,13 +290,13 @@ public class MainUI {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JOptionPane.showMessageDialog(null, "" +
-                        "enter on Input Field   = searching for Input on all Drivers" +
-                        "enter on Path Field    = listing all files in that location" +
-                        "search Button          = multi search Option\n" +
-                        "Scann Button           = Driver Scanner + all existing files\n" +
-                        "Update Button          = gets all files with the path from the Path Input Field\n" +
-                        "Add Button             = Adds a file (creating a file)\n" +
-                        "Open Button            = opens selected file");
+                        "Input Field     = searching for Input on all Drivers\n" +
+                        "Path Field      = listing all files in that location\n" +
+                        "search Button   = multi search Option\n" +
+                        "Scann Button    = Driver Scanner + all existing files\n" +
+                        "Update Button   = gets all files with the path from the Path Input Field\n" +
+                        "Add Button      = Adds a file (creating a file)\n" +
+                        "Open Button     = opens selected file\n");
             }
         });
         clearBtn.addActionListener(new ActionListener() {
