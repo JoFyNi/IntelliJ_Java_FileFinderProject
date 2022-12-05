@@ -8,6 +8,7 @@ import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
+import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.nio.file.*;
@@ -218,37 +219,27 @@ public class MainUI {
 
             }
         });
-        listTable.addMouseListener(new MouseListener() {
+        listTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                int column = 0;
-                int row = listTable.getSelectedRow();
-                String value = listTable.getModel().getValueAt(row, column).toString();
-                fileOpenerThread fileOpenerThread = new fileOpenerThread(new File(value));
-                fileOpenerThread.start();
-                //fileReaderThread.fileReaderThread(pathInput.getText(),fileInput.getText(),typ);
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-
+                if (SwingUtilities.isLeftMouseButton(e)){
+                    int column = 0;
+                    int row = listTable.getSelectedRow();
+                    String value = listTable.getModel().getValueAt(row, column).toString();
+                    fileOpenerThread fileOpenerThread = new fileOpenerThread(new File(value));
+                    fileOpenerThread.start();
+                    //fileReaderThread.fileReaderThread(pathInput.getText(),fileInput.getText(),typ);
+                }
+                if (SwingUtilities.isRightMouseButton(e)){
+                    PopupMenu contextmenu = new PopupMenu("Menu");
+                    System.out.println("click");
+                    //contextmenu.add(listTable);
+                    //contextmenu.show(listTable, 0, 0);  // fehler
+                }
             }
         });
+
+
         openObject.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -397,8 +388,7 @@ public class MainUI {
         // Invoke the pattern matching
         // method on each file.
         @Override
-        public FileVisitResult visitFile(Path file,
-                                         BasicFileAttributes attrs) {
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
             try {
                 find(file);
             } catch (InterruptedException e) {
@@ -409,8 +399,7 @@ public class MainUI {
         // Invoke the pattern matching
         // method on each directory.
         @Override
-        public FileVisitResult preVisitDirectory(Path dir,
-                                                 BasicFileAttributes attrs) {
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
             try {
                 find(dir);
             } catch (InterruptedException e) {
@@ -419,58 +408,11 @@ public class MainUI {
             return CONTINUE;
         }
         @Override
-        public FileVisitResult visitFileFailed(Path file,
-                                               IOException exc) {
+        public FileVisitResult visitFileFailed(Path file, IOException exc) {
             //            System.err.println(exc);
             return CONTINUE;
         }
     }
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Excel into JTable -> not working yet
-    // when improvement for searching is finish -> finish exports/imports
-    public void givenWorkbook_whenInsertRowBetween_thenRowCreated() throws IOException {
-        String fileLocation = "U:\\TestMappe.xlsx";
-
-        int startRow = 2;
-        int rowNumber = 1;
-        Workbook workbook = new XSSFWorkbook(fileLocation);
-        Sheet sheet = workbook.getSheetAt(0);
-        int lastRow = sheet.getLastRowNum();
-        if (lastRow < startRow) {
-            sheet.createRow(startRow);
-        }
-        sheet.shiftRows(startRow, lastRow, rowNumber, true, true);
-        sheet.createRow(startRow);
-        FileOutputStream outputStream = new FileOutputStream("fileListe.xlsx");
-        workbook.write(outputStream);
-        File file = new File("C:\\Users\\j.nievelstein\\Java\\Ausleihe\\src\\main\\java\\componenten\\geraete");
-        final int expectedRowResult = 5;
-        //Assertions.assertEquals(expectedRowResult, workbook.getSheetAt(0).getLastRowNum());
-        outputStream.close();
-        file.delete();
-        workbook.close();
-
-        //System.setProperty("log4j.configurationFile","./path_to_the_log4j2_config_file/log4j2.xml");
-        //Logger log = LogManager.getLogger(LogExample.class.getName());
-
-        //Object[][] data = {{"Laptop", "B4FG98E", "Heinz", 29.03}, {"Laptop", "OS26J6E", "Heinrich", 15.11}, {"Laptop", "OK29J2", "Ernst", 09.08}};
-        //listTable.setModel(new DefaultTableModel(data, headings));  // data and Header
-        /*
-        TableColumnModel columns = listTable.getColumnModel();
-        columns.getColumn(0).setMaxWidth(200);
-        columns.getColumn(1).setMaxWidth(200);
-        columns.getColumn(2).setMaxWidth(200);
-        columns.getColumn(3).setMaxWidth(200);
-
-        DefaultTableCellRenderer centerRender = new DefaultTableCellRenderer();
-        centerRender.setHorizontalAlignment(JLabel.CENTER);
-        columns.getColumn(0).setCellRenderer(centerRender);
-        columns.getColumn(1).setCellRenderer(centerRender);
-        columns.getColumn(2).setCellRenderer(centerRender);
-        columns.getColumn(3).setCellRenderer(centerRender);
-         */
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     private void addTree(File file, Collection<File> all) {
         File[] children = file.listFiles();
@@ -627,7 +569,80 @@ public class MainUI {
             }
         });
     }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    class PopUpDemo extends JPopupMenu {
+        JMenuItem anItem;
+        public PopUpDemo() {
+            anItem = new JMenuItem("Click Me!");
+            add(anItem);
+        }
+    }
+    class PopClickListener extends MouseAdapter {
+        public void mousePressed(MouseEvent e) {
+            if (e.isPopupTrigger())
+                doPop(e);
+        }
 
+        public void mouseReleased(MouseEvent e) {
+            if (e.isPopupTrigger())
+                doPop(e);
+        }
+
+        private void doPop(MouseEvent e) {
+            PopUpDemo menu = new PopUpDemo();
+            menu.show(e.getComponent(), e.getX(), e.getY());
+        }
+    }
+
+    // Then on your component(s)
+    //component.addMouseListener(new PopClickListener());
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Excel into JTable -> not working yet
+    // when improvement for searching is finish -> finish exports/imports
+    public void givenWorkbook_whenInsertRowBetween_thenRowCreated() throws IOException {
+        String fileLocation = "U:\\TestMappe.xlsx";
+
+        int startRow = 2;
+        int rowNumber = 1;
+        Workbook workbook = new XSSFWorkbook(fileLocation);
+        Sheet sheet = workbook.getSheetAt(0);
+        int lastRow = sheet.getLastRowNum();
+        if (lastRow < startRow) {
+            sheet.createRow(startRow);
+        }
+        sheet.shiftRows(startRow, lastRow, rowNumber, true, true);
+        sheet.createRow(startRow);
+        FileOutputStream outputStream = new FileOutputStream("fileListe.xlsx");
+        workbook.write(outputStream);
+        File file = new File("C:\\Users\\j.nievelstein\\Java\\Ausleihe\\src\\main\\java\\componenten\\geraete");
+        final int expectedRowResult = 5;
+        //Assertions.assertEquals(expectedRowResult, workbook.getSheetAt(0).getLastRowNum());
+        outputStream.close();
+        file.delete();
+        workbook.close();
+
+        //System.setProperty("log4j.configurationFile","./path_to_the_log4j2_config_file/log4j2.xml");
+        //Logger log = LogManager.getLogger(LogExample.class.getName());
+
+        //Object[][] data = {{"Laptop", "B4FG98E", "Heinz", 29.03}, {"Laptop", "OS26J6E", "Heinrich", 15.11}, {"Laptop", "OK29J2", "Ernst", 09.08}};
+        //listTable.setModel(new DefaultTableModel(data, headings));  // data and Header
+        /*
+        TableColumnModel columns = listTable.getColumnModel();
+        columns.getColumn(0).setMaxWidth(200);
+        columns.getColumn(1).setMaxWidth(200);
+        columns.getColumn(2).setMaxWidth(200);
+        columns.getColumn(3).setMaxWidth(200);
+
+        DefaultTableCellRenderer centerRender = new DefaultTableCellRenderer();
+        centerRender.setHorizontalAlignment(JLabel.CENTER);
+        columns.getColumn(0).setCellRenderer(centerRender);
+        columns.getColumn(1).setCellRenderer(centerRender);
+        columns.getColumn(2).setCellRenderer(centerRender);
+        columns.getColumn(3).setCellRenderer(centerRender);
+         */
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // x = columns, y = rows
     private String getCellVal(int x, int y) {
         return listTable.getValueAt(x, y).toString();
@@ -657,3 +672,10 @@ public class MainUI {
 
 }
 // created with https://www.youtube.com/watch?v=3m1j3PiUeVI
+
+
+/**
+ * Label that get the selected path -> onclick event
+ * copy file / relocate file
+ *
+ */
