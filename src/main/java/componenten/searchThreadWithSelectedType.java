@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 
-import static componenten.MainUI.getResultToListOnTable;
 import static java.nio.file.FileVisitResult.CONTINUE;
 
 public class searchThreadWithSelectedType extends Thread {
@@ -62,7 +61,7 @@ public class searchThreadWithSelectedType extends Thread {
                 numMatches++;
                 System.out.println(file +" (void find) " + name);
                 PathResult = file;
-                getResultToListOnTable(PathResult);
+                //getResultToListOnTable(PathResult);
             }
         }
 

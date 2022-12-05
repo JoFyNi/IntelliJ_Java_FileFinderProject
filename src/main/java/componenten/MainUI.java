@@ -222,11 +222,13 @@ public class MainUI {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JOptionPane.showMessageDialog(null, "" +
-                        "search Button = multi search Option\n" +
-                        "Scann Button = Driver Scanner + all existing files\n" +
-                        "Update Button = gets all files with the path from the Path Input Field\n" +
-                        "Add Button = Adds a file (creating a file)\n" +
-                        "Open Button = opens selected file");
+                        "enter on Input Field   = searching for Input on all Drivers" +
+                        "enter on Path Field    = listing all files in that location" +
+                        "search Button          = multi search Option\n" +
+                        "Scann Button           = Driver Scanner + all existing files\n" +
+                        "Update Button          = gets all files with the path from the Path Input Field\n" +
+                        "Add Button             = Adds a file (creating a file)\n" +
+                        "Open Button            = opens selected file");
             }
         });
         /**
@@ -253,10 +255,10 @@ public class MainUI {
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // get filePath from Thread
-    static Path getResultToListOnTable(Path file){
+    //static Path getResultToListOnTable(Path file){
         //PathResult = file;
         //return PathResult;
-    }
+    //}
     // get PathResult (Path from Thread)
     private void durationTimer() throws InterruptedException {
         //if (PathResult != null) {
@@ -277,7 +279,7 @@ public class MainUI {
         model.addRow(row);
         System.out.printf(ResultFiles + System.lineSeparator() + "got it");
     }
-
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // does not work right
     private static int finalTotal = 0;
 
@@ -297,7 +299,7 @@ public class MainUI {
 
             String pattern = file +"."+ typ;
 
-            searchThreadWithSelectedType.Finder finder = new searchThreadWithSelectedType.Finder(pattern);
+            Finder finder = new Finder(pattern);
             try {
                 System.out.println("searching for "+ pattern);
                 Files.walkFileTree(startingDir, finder);
@@ -313,7 +315,6 @@ public class MainUI {
 
         private final PathMatcher matcher;
         private int numMatches = 0;
-        public static Path PathResult;
 
         Finder(String pattern) {
             matcher = FileSystems.getDefault()
@@ -322,20 +323,24 @@ public class MainUI {
 
         // Compares the glob pattern against
         // the file or directory name.
-        void find(Path file) throws InterruptedException {
-            Path name = file.getFileName();
+        void find(Path filePath) throws InterruptedException {
+            Path name = filePath.getFileName();
             if (name != null && matcher.matches(name)) {
                 numMatches++;
-                System.out.println(file +" (void find) " + name);
+                System.out.println(filePath);
+
+                FileSystemView fsv = FileSystemView.getFileSystemView();
+
                 Object[] row = new Object[2];
                 DefaultTableModel model = (DefaultTableModel) listTable.getModel();
                 model.setColumnIdentifiers(new String[]{"Files Names"});
                 listTable.setModel(model);
-                //for (int i = 0;i<children.length; i++) {
-                 //   row[0] = children[i];
-                   // row[1] = children[i].getName();
-                   // model.addRow(row);
-                //}
+                // numMatcher -> +1 every round -> change it!
+                for (int i = 0;i<numMatches; i++) {
+                    row[0] = filePath;
+                    row[1] = fsv;
+                    model.addRow(row);
+                }
             }
         }
         // Prints the total number of
@@ -381,20 +386,21 @@ public class MainUI {
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // delete trash?    -> unused method
-    private static void printSearchResult(File file, Collection<File> all) {
+    private void printSearchResult(File file, Collection<File> all) {
         File[] children = file.listFiles();
         if (children != null) {     //scan des Ordners (anzahl Dateien, Typ, name, etc..)
             for (File child : children) {
                 all.add(child);
 
-                Object[] columnData = {"Name", "Pfad", "Autor"};
-                Object[] row = new Object[3];
-                DefaultTableModel model = new DefaultTableModel();
-                model.setColumnIdentifiers(columnData);
-                //listTable.setModel(model);
-                model.insertRow(0, new Object[]{row[0] = child.getName(),row[1] = child.getParent(), row[2] = child.getTotalSpace()});
-                model.addRow(row);
-                System.out.printf(child + System.lineSeparator());
+                Object[] row = new Object[2];
+                DefaultTableModel model = (DefaultTableModel) listTable.getModel();
+                model.setColumnIdentifiers(new String[]{"Files Names"});
+                listTable.setModel(model);
+                for (int i = 0;i<children.length; i++) {
+                    row[0] = children[i];
+                    row[1] = children[i].getName();
+                    model.addRow(row);
+                }
             }
         }
     }
