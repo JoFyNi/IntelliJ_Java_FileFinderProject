@@ -33,6 +33,9 @@ public class MainUI {
     private JButton scannBtn;
     private JButton searchListBtn;
     private JButton helpBtn;
+    private JButton clearBtn;
+    private JButton fileInputBtn;
+    private JButton pathInputBtn;
     // export parameter
     private String typ = "**";
     private String driver;
@@ -100,9 +103,15 @@ public class MainUI {
         fileInput.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
+                // clear the Table
+                DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
+                dm.getDataVector().removeAllElements();
+                dm.fireTableDataChanged();
+                // new Table data
                 int key = e.getKeyCode();
                 if (key == KeyEvent.VK_ENTER)
                 {
+                    //listTable.clearSelection();
                     searchThreadWithSelectedType(fileInput.getText(), typ);
                     //searchThreadWithSelectedType finder = new searchThreadWithSelectedType(fileInput.getText(), typ);
                     //finder.start();
@@ -114,10 +123,32 @@ public class MainUI {
                 super.keyPressed(e);
             }
         });
+        fileInputBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // clear the Table
+                DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
+                dm.getDataVector().removeAllElements();
+                dm.fireTableDataChanged();
+                // new Table data
+                searchThreadWithSelectedType(fileInput.getText(), typ);
+
+                 if (fileInput.getText() == "") {
+                    // get All files
+                    Collection<File> all = new ArrayList<File>();
+                    searchAll(new File(pathInput.getText()), all);
+                }
+            }
+        });
         // searching with pathInput value
         pathInput.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
+                // clear the Table
+                DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
+                dm.getDataVector().removeAllElements();
+                dm.fireTableDataChanged();
+                // new Table data
                 int key = e.getKeyCode();
                 String fileName = fileInput.getText();
                 String PATH = "C:\\";
@@ -148,6 +179,43 @@ public class MainUI {
                     }
                 }
                 super.keyPressed(e);
+            }
+        });
+        pathInputBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // clear the Table
+                DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
+                dm.getDataVector().removeAllElements();
+                dm.fireTableDataChanged();
+                // new Table data
+                String fileName = fileInput.getText();
+                String PATH = "C:\\";
+                String directoryName = PATH.concat(String.valueOf(this.getClass()));
+                File directory = new File(directoryName);
+                if (directory.exists()) {
+                    // get All files
+                    Collection<File> all = new ArrayList<File>();
+                    addTree(new File(pathInput.getText()), all);
+                    System.out.println("Path exists");
+                }
+                if (!directory.exists()) {
+                    directory.mkdir();
+                    // If you require it to make the entire directory path including parents,
+                    // use directory.mkdirs(); here instead.
+                    System.out.println("Path doesn't exists");
+                }
+                File file = new File(directoryName + "/" + fileName);
+                try {
+                    FileWriter fw = new FileWriter(file.getAbsoluteFile());
+                    BufferedWriter bw = new BufferedWriter(fw);
+                    bw.write(pathInput.getText());
+                    bw.close();
+                } catch (IOException eeee) {
+                    eeee.printStackTrace();
+                    System.exit(-1);
+                }
+
             }
         });
         listTable.addMouseListener(new MouseListener() {
@@ -229,6 +297,15 @@ public class MainUI {
                         "Update Button          = gets all files with the path from the Path Input Field\n" +
                         "Add Button             = Adds a file (creating a file)\n" +
                         "Open Button            = opens selected file");
+            }
+        });
+        clearBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // clear the Table
+                DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
+                dm.getDataVector().removeAllElements();
+                dm.fireTableDataChanged();
             }
         });
         /**
@@ -397,7 +474,6 @@ public class MainUI {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     private void addTree(File file, Collection<File> all) {
         File[] children = file.listFiles();
-        System.out.println("addTree");
         if (children != null) {     //scan des Ordners (anzahl Dateien, Typ, name, etc..)
             for (File child : children) {
                 all.add(child);
