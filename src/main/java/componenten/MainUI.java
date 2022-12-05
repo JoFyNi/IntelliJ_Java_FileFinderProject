@@ -34,9 +34,9 @@ public class MainUI {
     private JButton searchListBtn;
     private JButton helpBtn;
     // export parameter
-    private String typ = "txt";
+    private String typ = "**";
     private String driver;
-
+    private Object[] row;
 
     // Tutorials/ help
     // editable JTable https://www.codejava.net/java-se/swing/editable-jtable-example
@@ -50,7 +50,6 @@ public class MainUI {
         createObject();
         //exportList();
         //rerere();
-        durationTimer();        // can be deleted when thread is working correctly
     }
     private void rerere() {
     ArrayList<File>list = listDirectories(new File("C:\\Users\\j.nievelstein\\Java\\Ausleihe\\src\\main\\java\\componenten\\geraete"), "", null, false, false);
@@ -154,11 +153,12 @@ public class MainUI {
         listTable.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                try {
-                    fileReaderThread.fileReaderThread(pathInput.getText(),fileInput.getText(),typ);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
+                int column = 0;
+                int row = listTable.getSelectedRow();
+                String value = listTable.getModel().getValueAt(row, column).toString();
+                fileOpenerThread fileOpenerThread = new fileOpenerThread(new File(value));
+                fileOpenerThread.start();
+                //fileReaderThread.fileReaderThread(pathInput.getText(),fileInput.getText(),typ);
             }
 
             @Override
@@ -254,32 +254,6 @@ public class MainUI {
          */
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // get filePath from Thread
-    //static Path getResultToListOnTable(Path file){
-        //PathResult = file;
-        //return PathResult;
-    //}
-    // get PathResult (Path from Thread)
-    private void durationTimer() throws InterruptedException {
-        //if (PathResult != null) {
-          //  System.out.println("!=null");
-            //ResultFabricator(PathResult);
-       // }
-        //Thread.sleep(1000);
-    }
-    // make something with the PathResult
-    void ResultFabricator(Path ResultFiles){
-        Path name = ResultFiles.getFileName();
-        Object[] columnData = {"Name", "Pfad", "Autor"};
-        Object[] row = new Object[3];
-        DefaultTableModel model = new DefaultTableModel();
-        model.setColumnIdentifiers(columnData);
-        this.listTable.setModel(model);
-        model.insertRow(0, new Object[]{row[0] = name,row[1] = ResultFiles.getParent(), row[2] = ResultFiles.getFileSystem()});
-        model.addRow(row);
-        System.out.printf(ResultFiles + System.lineSeparator() + "got it");
-    }
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // searching file from fileInput (name)
     private static int finalTotal = 0;
     private void searchThreadWithSelectedType(String file, String typ) {
@@ -319,9 +293,9 @@ public class MainUI {
             if (name != null && matcher.matches(name)) {
                 numMatches++;
                 System.out.println(filePath);
-                Object[] row = new Object[2];
+                row = new Object[2];
                 DefaultTableModel model = (DefaultTableModel) listTable.getModel();
-                model.setColumnIdentifiers(new String[]{"Files Names"});
+                model.setColumnIdentifiers(new String[]{"Path","Files Names"});
                 listTable.setModel(model);
                 /**
                  * a = 1, i = 0
@@ -330,7 +304,7 @@ public class MainUI {
                  */
                 for (int i = 0; i <a ; i++) {
                     row[0] = filePath;
-                    row[1] = fsv;
+                    row[1] = filePath.getFileName();
                     model.addRow(row);
                 }
                 a++;
@@ -374,27 +348,6 @@ public class MainUI {
             return CONTINUE;
         }
     }
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // delete trash?    -> unused method
-    private void printSearchResult(File file, Collection<File> all) {
-        File[] children = file.listFiles();
-        if (children != null) {     //scan des Ordners (anzahl Dateien, Typ, name, etc..)
-            for (File child : children) {
-                all.add(child);
-
-                Object[] row = new Object[2];
-                DefaultTableModel model = (DefaultTableModel) listTable.getModel();
-                model.setColumnIdentifiers(new String[]{"Files Names"});
-                listTable.setModel(model);
-                for (int i = 0;i<children.length; i++) {
-                    row[0] = children[i];
-                    row[1] = children[i].getName();
-                    model.addRow(row);
-                }
-            }
-        }
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Excel into JTable -> not working yet
     // when improvement for searching is finish -> finish exports/imports
@@ -455,9 +408,9 @@ public class MainUI {
                  * row[1] = filePath
                  * row[2] = TotalSpace soll später Autor oder Datum sein
                  */
-                Object[] row = new Object[2];
+                row = new Object[2];
                 DefaultTableModel model = (DefaultTableModel) listTable.getModel();
-                model.setColumnIdentifiers(new String[]{"Files Names"});
+                model.setColumnIdentifiers(new String[]{"Path","Files Names"});
                 listTable.setModel(model);
                 for (int i = 0;i<children.length; i++) {
                     row[0] = children[i];
@@ -468,7 +421,6 @@ public class MainUI {
             }
         }
     }
-
     private void searchAll(File file, Collection<File> all) {
         File[] files = file.listFiles();        // File [] files = list of all files
         if (files != null) {
@@ -477,9 +429,9 @@ public class MainUI {
                 searchAll(child, all);
                 //Object[][] data = {{child, all}};
                 //listTable.setModel(new DefaultTableModel(data, headings));  // data and Header
-                Object[] row = new Object[2];
+                row = new Object[2];
                 DefaultTableModel model = (DefaultTableModel) listTable.getModel();
-                model.setColumnIdentifiers(new String[]{"Files Names"});
+                model.setColumnIdentifiers(new String[]{"Path","Files Names"});
                 listTable.setModel(model);
                 for (int i = 0;i<files.length; i++) {
                     row[0] = files[i];
@@ -489,30 +441,11 @@ public class MainUI {
             }
         }
     }
-    // delete?
-    private void readSelected(File file) throws FileNotFoundException {
-        BufferedReader bufferedReader = new BufferedReader(new FileReader(file));
-        try {
-            String line;
-            while (null != (line = bufferedReader.readLine())) {
-                System.out.printf(line);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (null != bufferedReader) {
-                try {
-                    bufferedReader.close();
-                } catch (IOException ee) {
-                    ee.printStackTrace();
-                }
-            }
-        }
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // ComboBox for driver Selection -> select driver for small amount (search speed increase)
-    // not working correctly -> need improvement
+
+    /** ComboBox for driver Selection -> select driver for small amount (search speed increase)
+     * not working correctly -> need improvement
+     */
     private void selectDrivers() {   // comboBox
         driverSelector.setModel(new DefaultComboBoxModel(new String[]{"C", "Q", "W"}));
         driverSelector.addActionListener(new ActionListener() {
@@ -536,18 +469,21 @@ public class MainUI {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // ComboBox for fileType selection
-    // improvement -> parameter for all kind of types
+    /**
+     * ComboBox for fileType selection
+     * typ = ** -> search all kind of fileTypes with the Name from fileInput
+     * */
     private void selectDataType() {
-        dataType.setModel(new DefaultComboBoxModel(new String[]{"txt", "ods","pdf","ai","eps","psd","doc","docx","ppt","pptx","pps","ppsm","ppsx","xls","xlsx"}));
-
+        dataType.setModel(new DefaultComboBoxModel(new String[]{"typ","txt", "ods","pdf","ai","eps","psd","doc","docx","ppt","pptx","pps","ppsm","ppsx","xls","xlsx"}));
         dataType.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 TableColumnModel columns = listTable.getColumnModel();
 
                 if (e.getSource()==dataType) {
-                    if (dataType.getSelectedItem()=="txt"){
+                    if (dataType.getSelectedItem()=="**") {
+                        typ = "**";
+                    } else if (dataType.getSelectedItem()=="txt"){
                         typ = "txt";
                     } else if (dataType.getSelectedItem()=="ods") {
                         typ = "ods";
@@ -588,9 +524,11 @@ public class MainUI {
             }
         });
     }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // geräte Liste/ Manager --> neuer JTable?
+    /**
+     * createObject opens a search frame
+     * select a file -> selected file get list in JTable
+     */
     private void createObject() {
         addObject.addActionListener(new ActionListener() {
             @Override
@@ -601,34 +539,18 @@ public class MainUI {
                     if (response == JFileChooser.APPROVE_OPTION) {
                         File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
                         System.out.println(file);
+                        row = new Object[2];
+                        DefaultTableModel model = (DefaultTableModel) listTable.getModel();
+                        model.setColumnIdentifiers(new String[]{"Path","Files Names"});
+                        listTable.setModel(model);
+                        row[0] = file;
+                        row[1] = file.getName();
+                        model.addRow(row);
                     }
                 }
             }
         });
-        /*
-        String deviceTyp = JOptionPane.showInputDialog("Was für ein Gerät");
-                String ServiceTag = JOptionPane.showInputDialog("Service-Tag");
-                String WindowsVersion = JOptionPane.showInputDialog("Windows Version");
-                String Prozessor = JOptionPane.showInputDialog("Prozessor");
-                String Grafikkarte = JOptionPane.showInputDialog("Grafikkarte");
-                String Ram = JOptionPane.showInputDialog("Ram art+menge");
-                String nutzen = JOptionPane.showInputDialog("Wofür wird das Gerät genutzt");
-
-                File objectFile = new File("C:\\Users\\j.nievelstein\\Java\\Ausleihe\\src\\main\\java\\componenten\\geraete\\" + ServiceTag + ".txt");
-                try {
-                    BufferedWriter ausleiheWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(objectFile, true)));
-                    ausleiheWriter.write("Verfügbarkeit: " + verfuegbarkeit + " \n" +"Geräte Typ: " + deviceTyp + " \n" + "Service Tag: " + ServiceTag + " \n" + "Windows Version: " + WindowsVersion + " \n" + "Prozessor: " + Prozessor + " \n" + "Grafikkarte: " + Grafikkarte + " \n" + "Ram: " + Ram + " \n" + "Wird als: " + nutzen + " genutzt");
-                    ausleiheWriter.newLine();
-                    ausleiheWriter.close();
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-                System.out.printf("erfolg");
-         */
     }
-
-//https://cdn.crunchify.com/wp-content/uploads/2020/10/In-Java-How-to-Save-and-Load-Data-from-a-File-Simple-Production-Ready-Utility-for-File-IO-Read-Write-Operation.png
-
 
     // x = columns, y = rows
     private String getCellVal(int x, int y) {
