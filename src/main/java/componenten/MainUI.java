@@ -280,7 +280,7 @@ public class MainUI {
         System.out.printf(ResultFiles + System.lineSeparator() + "got it");
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // does not work right
+    // searching file from fileInput (name)
     private static int finalTotal = 0;
     private void searchThreadWithSelectedType(String file, String typ) {
         File[] paths;
