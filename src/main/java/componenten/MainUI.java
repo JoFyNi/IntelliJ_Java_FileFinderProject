@@ -36,6 +36,8 @@ public class MainUI {
     private JButton clearBtn;
     private JButton fileInputBtn;
     private JButton pathInputBtn;
+    private JLabel pathLabel;
+    private JLabel fileLabel;
     // export parameter
     private String typ = "**";
     private String driver;
@@ -181,7 +183,8 @@ public class MainUI {
             JMenuItem addItem = new JMenuItem("add");
             JMenuItem openItem = new JMenuItem("open");
             JMenuItem openInItem = new JMenuItem("open in");
-            JMenuItem scannItem = new JMenuItem("scann");
+            JMenuItem copyPathItem = new JMenuItem("copy path");
+            JMenuItem copyNameItem = new JMenuItem("copy Name");
             String selectedValue = null;;
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -197,7 +200,8 @@ public class MainUI {
                     popupMenu.add(addItem);
                     popupMenu.add(openItem);
                     popupMenu.add(openInItem);
-                    popupMenu.add(scannItem);
+                    popupMenu.add(copyPathItem);
+                    popupMenu.add(copyNameItem);
                     popupMenu.show(e.getComponent(), e.getX(), e.getY());
                     addItem.addActionListener(new ActionListener() {
                         @Override
@@ -241,10 +245,22 @@ public class MainUI {
                             // create option menu
                         }
                     });
-                    scannItem.addActionListener(new ActionListener() {
+                    copyPathItem.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-                            //
+                            int selectedColumn = 0;
+                            int selectedRow = listTable.getSelectedRow();
+                            selectedValue = listTable.getModel().getValueAt(selectedRow, selectedColumn).toString();
+                            pathLabel.setText(selectedValue);
+                        }
+                    });
+                    copyNameItem.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            int selectedColumn = 0;
+                            int selectedRow = listTable.getSelectedRow();
+                            fileLabel.setText(listTable.getModel().getValueAt(selectedRow,selectedColumn).toString());
+                            // not finished -> has to get fileName not Path
                         }
                     });
                 }
