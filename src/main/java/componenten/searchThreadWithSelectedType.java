@@ -55,14 +55,15 @@ public class searchThreadWithSelectedType extends Thread {
 
         // Compares the glob pattern against
         // the file or directory name.
-        void find(Path file) throws InterruptedException {
+        PathMatcher find(Path file) throws InterruptedException {
             Path name = file.getFileName();
             if (name != null && matcher.matches(name)) {
                 numMatches++;
-                System.out.println(file +" (void find) " + name);
+                System.out.println(file);
                 PathResult = file;
-                //getResultToListOnTable(PathResult);
+                return this.matcher;
             }
+            return null;
         }
 
         // Prints the total number of

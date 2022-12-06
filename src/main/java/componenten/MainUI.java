@@ -52,45 +52,6 @@ public class MainUI {
         selectDataType();
         createObject();
         //exportList();
-        //rerere();
-    }
-    private void rerere() {
-    ArrayList<File>list = listDirectories(new File("C:\\Users\\j.nievelstein\\Java\\Ausleihe\\src\\main\\java\\componenten\\geraete"), "", null, false, false);
-    for (int i = 0; i<list.size();i++) {
-        System.out.println("HIER!=!==!"+list.get(i).toString());
-
-    }
-}
-    private ArrayList<File> listDirectories(File root, String dirName, ArrayList<File> list, boolean caseSensitivity, boolean printEmpty) {
-        if (root == null || dirName.isEmpty()) {
-            System.err.println("ausgangsverzeichnis fehler");
-            return null;
-        } if (list == null) {
-            list = new ArrayList<File>();
-            File[] files = root.listFiles();
-            if (files.length != 0) {
-
-                for (File file: files) {
-                    String fileStr = file.toString();
-                    if (!caseSensitivity) {
-                        fileStr = fileStr.toLowerCase();
-                        dirName = dirName.toLowerCase();
-                        System.out.println("fileStr " + fileStr);
-                        System.out.println("dirName " + dirName);
-                    }
-                    if (fileStr.lastIndexOf(dirName) == fileStr.length() - dirName.length() && file.isDirectory() && file.getName().equalsIgnoreCase(dirName)) {
-                        list.add(file);
-                        System.out.println("list " + list);
-                    }
-                    if (file.isDirectory()) {
-                        listDirectories(file, dirName, list, caseSensitivity, printEmpty);
-                        System.out.println("listDirectories " + listDirectories(file, dirName, list, caseSensitivity, printEmpty));
-                    }
-                }
-            } else if (printEmpty) {
-                System.out.println(root + " ist leer");
-            }
-        } return list;
     }
 
     public JPanel getRootPanel() {
@@ -103,18 +64,15 @@ public class MainUI {
         fileInput.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                // clear the Table
-                DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
-                dm.getDataVector().removeAllElements();
-                dm.fireTableDataChanged();
-                // new Table data
                 int key = e.getKeyCode();
                 if (key == KeyEvent.VK_ENTER)
                 {
-                    //listTable.clearSelection();
+                    // clear the Table
+                    DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
+                    dm.getDataVector().removeAllElements();
+                    dm.fireTableDataChanged();
+                    // new Table data
                     searchThreadWithSelectedType(fileInput.getText(), typ);
-                    //searchThreadWithSelectedType finder = new searchThreadWithSelectedType(fileInput.getText(), typ);
-                    //finder.start();
                 } else if (fileInput.getText() == "") {
                     // get All files
                     Collection<File> all = new ArrayList<File>();

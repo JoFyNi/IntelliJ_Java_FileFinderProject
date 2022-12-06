@@ -19,10 +19,6 @@ public class searchThread extends Thread{
                     //System.out.println(fil.getParentFile());
                 }
             }
-        //System.out.printf("\n" + file);
-        //anzeige.append("---------------file you looking for---------------\n");
-        //anzeige.append(file + "\n");
-        //anzeige.append("--------------------------------------------------\n");
     }
 
     @Override
@@ -32,7 +28,6 @@ public class searchThread extends Thread{
                 Collection<File> all = new ArrayList<File>();
                 addTree(new File("C:\\Users\\j.nievelstein\\Java\\Ausleihe\\src\\main\\java\\componenten\\geraete"), all);
 
-                //anzeige.setText("result "+ all);
                 System.out.println(all);
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -50,7 +45,6 @@ public class searchThread extends Thread{
                 //anzeige.append(child + System.lineSeparator());    // mit getName() nur FileNamen anzeigen? (momentan path)
                 //System.out.println(child + System.lineSeparator());
                 return child;
-
             }
         }
         return file;

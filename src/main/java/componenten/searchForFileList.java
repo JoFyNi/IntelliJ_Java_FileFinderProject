@@ -42,8 +42,9 @@ public class searchForFileList extends JFrame {
                 File file = new File(textArea.getText());
                 //Collection<File> all = new ArrayList<File>();
                 //addTree(new File(textArea.getText()), all);
-                searchThreadForFileList finder = new searchThreadForFileList(file, files);
-                finder.start();
+                String typ = "**";
+                for (String line : textArea.getText().split("\\n")) new searchThreadWithSelectedType(line, typ);
+                textArea.setText("");
             }
         });
     }
