@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 
 public class fileOpenerThread extends Thread{
-
     public fileOpenerThread(File file) {
         if (Desktop.isDesktopSupported()) {
             try {

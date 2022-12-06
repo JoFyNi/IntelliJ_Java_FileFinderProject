@@ -8,7 +8,6 @@ import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
-import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.nio.file.*;
@@ -29,7 +28,7 @@ public class MainUI {
     private JTextField pathInput;
     private JTextField fileInput;
     private JButton addObject;
-    private JButton openObject;
+    private JButton openBtn;
     private JButton updateBtn;
     private JButton scannBtn;
     private JButton searchListBtn;
@@ -99,7 +98,7 @@ public class MainUI {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    private void buttons() {
+    void buttons() {
         // searching with fileInput value
         fileInput.addKeyListener(new KeyAdapter() {
             @Override
@@ -220,33 +219,94 @@ public class MainUI {
             }
         });
         listTable.addMouseListener(new MouseAdapter() {
+            JPopupMenu popupMenu = new JPopupMenu();
+            JMenuItem addItem = new JMenuItem("add");
+            JMenuItem openItem = new JMenuItem("open");
+            JMenuItem openInItem = new JMenuItem("open in");
+            JMenuItem scannItem = new JMenuItem("scann");
+            String selectedValue = null;;
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)){
-                    int column = 0;
-                    int row = listTable.getSelectedRow();
-                    String value = listTable.getModel().getValueAt(row, column).toString();
-                    fileOpenerThread fileOpenerThread = new fileOpenerThread(new File(value));
-                    fileOpenerThread.start();
+
+                    //int selectedRow = listTable.getSelectedRow();
+                    //int selectedValue = listTable.getModel().getValueAt(selectedRow, selectedColumn).toString();
+                    //fileOpenerThread fileOpenerThread = new fileOpenerThread(new File(selectedValue));
+                    //fileOpenerThread.start();
                     //fileReaderThread.fileReaderThread(pathInput.getText(),fileInput.getText(),typ);
                 }
                 if (SwingUtilities.isRightMouseButton(e)){
-                    PopupMenu contextmenu = new PopupMenu("Menu");
-                    System.out.println("click");
-                    //contextmenu.add(listTable);
-                    //contextmenu.show(listTable, 0, 0);  // fehler
+                    popupMenu.add(addItem);
+                    popupMenu.add(openItem);
+                    popupMenu.add(openInItem);
+                    popupMenu.add(scannItem);
+                    popupMenu.show(e.getComponent(), e.getX(), e.getY());
+                    addItem.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            if (e.getSource()==addItem) {
+                                JFileChooser fileChooser = new JFileChooser();
+                                int response = fileChooser.showSaveDialog(null);
+                                if (response == JFileChooser.APPROVE_OPTION) {
+                                    File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+                                    System.out.println(file);
+                                    row = new Object[2];
+                                    DefaultTableModel model = (DefaultTableModel) listTable.getModel();
+                                    model.setColumnIdentifiers(new String[]{"Path","Files Names"});
+                                    listTable.setModel(model);
+                                    row[0] = file;
+                                    row[1] = file.getName();
+                                    model.addRow(row);
+                                }
+                            }
+                        }
+                    });
+                    openItem.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            if (selectedValue == null) {
+                                int selectedColumn = 0;
+                                int selectedRow = listTable.getSelectedRow();
+                                selectedValue = listTable.getModel().getValueAt(selectedRow, selectedColumn).toString();
+                                fileOpenerThread fileOpenerThread = new fileOpenerThread(new File(selectedValue));
+                                fileOpenerThread.start();
+                            } else if (selectedValue != null){
+                                selectedValue = null;   // creates an error, BUT that's good because selected gets reset
+                                fileOpenerThread fileOpenerThread = new fileOpenerThread(new File(selectedValue));
+                                fileOpenerThread.start();
+                            }
+                        }
+                    });
+                    openInItem.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            // create option menu
+                        }
+                    });
+                    scannItem.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            //
+                        }
+                    });
                 }
+                selectedValue = null;
             }
         });
-
-
-        openObject.addActionListener(new ActionListener() {
+        openBtn.addActionListener(new ActionListener() {
+            String selectedValue = null;
             @Override
             public void actionPerformed(ActionEvent e) {
-                try {
-                    fileReaderThread.fileReaderThread(pathInput.getText(),fileInput.getText(),typ);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
+                if (selectedValue == null) {
+                    int selectedColumn = 0;
+                    int selectedRow = listTable.getSelectedRow();
+                    selectedValue = listTable.getModel().getValueAt(selectedRow, selectedColumn).toString();
+                    fileOpenerThread fileOpenerThread = new fileOpenerThread(new File(selectedValue));
+                    fileOpenerThread.start();
+                } else if (selectedValue != null){
+                    selectedValue = null;
+                    fileOpenerThread fileOpenerThread = new fileOpenerThread(new File(selectedValue));
+                    fileOpenerThread.start();
                 }
             }
         });
@@ -322,22 +382,26 @@ public class MainUI {
          */
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // searching file from fileInput (name)
+    /** searching file from fileInput (name)
+     *  Multithreading, for each driver 1 thread
+     *  for each folder another thread
+     */
     private static int finalTotal = 0;
     private void searchThreadWithSelectedType(String file, String typ) {
         File[] paths;
         FileSystemView fsv = FileSystemView.getFileSystemView();
         paths = File.listRoots();
-        for (File path : paths) {
+        for (File path : paths) {   // first path "C:\" <-- how to get directory's
             String str = path.toString();
             String slash = "\\";
             String s = new StringBuilder(str).append(slash).toString();
-            Path startingDir = Paths.get(s);
-            String pattern = file +"."+ typ;
+            Path startingDirectory = Paths.get(s);      // for each directory new Thread!
+            String pattern = file +"."+ typ;    // get mkdir (driver's)
             Finder finder = new Finder(pattern);
+
             try {
                 System.out.println("searching for "+ pattern);
-                Files.walkFileTree(startingDir, finder);
+                Files.walkFileTree(startingDirectory, finder);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -356,7 +420,6 @@ public class MainUI {
         // the file or directory name.
         void find(Path filePath) throws InterruptedException {
             FileSystemView fsv = FileSystemView.getFileSystemView();
-            int a = 1;
             Path name = filePath.getFileName();
             if (name != null && matcher.matches(name)) {
                 numMatches++;
@@ -370,12 +433,11 @@ public class MainUI {
                  * if i < a create new row with filePath
                  * than make a+1 so "a" is bigger than "i" again for the next round
                  */
-                for (int i = 0; i <a ; i++) {
+                for (int i = 0; i <1 ; i++) {
                     row[0] = filePath;
                     row[1] = filePath.getFileName();
                     model.addRow(row);
                 }
-                a++;
             }
         }
         // Prints the total number of
@@ -413,6 +475,28 @@ public class MainUI {
             return CONTINUE;
         }
     }
+/*
+    private void forEachDirectory(File f) throws IOException {
+        FileFilter directoryFilter = new FileFilter() {
+            public boolean accept(File file) {
+                return file.isDirectory();
+            }
+        };
+
+        File[] files = f.listFiles(directoryFilter);
+        for (File file : files) {
+            if (file.isDirectory()) {
+                System.out.print("directory:");
+                ProcessingMultiThread processingMultiThread = new ProcessingMultiThread(file);
+                processingMultiThread.start();
+            } else {
+                System.out.print("     file:");
+            }
+            System.out.println(file.getCanonicalPath());
+        }
+    }
+
+ */
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     private void addTree(File file, Collection<File> all) {
         File[] children = file.listFiles();
@@ -463,6 +547,7 @@ public class MainUI {
 
     /** ComboBox for driver Selection -> select driver for small amount (search speed increase)
      * not working correctly -> need improvement
+     * scann from a to z
      */
     private void selectDrivers() {   // comboBox
         driverSelector.setModel(new DefaultComboBoxModel(new String[]{"C", "Q", "W"}));
@@ -490,6 +575,8 @@ public class MainUI {
     /**
      * ComboBox for fileType selection
      * typ = ** -> search all kind of fileTypes with the Name from fileInput
+     * make selectType to a automated typ getter
+     * get all typ's that are displayed on the JTable
      * */
     private void selectDataType() {
         dataType.setModel(new DefaultComboBoxModel(new String[]{"typ","txt", "ods","pdf","ai","eps","psd","doc","docx","ppt","pptx","pps","ppsm","ppsx","xls","xlsx"}));
@@ -570,34 +657,6 @@ public class MainUI {
         });
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    class PopUpDemo extends JPopupMenu {
-        JMenuItem anItem;
-        public PopUpDemo() {
-            anItem = new JMenuItem("Click Me!");
-            add(anItem);
-        }
-    }
-    class PopClickListener extends MouseAdapter {
-        public void mousePressed(MouseEvent e) {
-            if (e.isPopupTrigger())
-                doPop(e);
-        }
-
-        public void mouseReleased(MouseEvent e) {
-            if (e.isPopupTrigger())
-                doPop(e);
-        }
-
-        private void doPop(MouseEvent e) {
-            PopUpDemo menu = new PopUpDemo();
-            menu.show(e.getComponent(), e.getX(), e.getY());
-        }
-    }
-
-    // Then on your component(s)
-    //component.addMouseListener(new PopClickListener());
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Excel into JTable -> not working yet
     // when improvement for searching is finish -> finish exports/imports
     public void givenWorkbook_whenInsertRowBetween_thenRowCreated() throws IOException {
