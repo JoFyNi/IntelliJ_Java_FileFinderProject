@@ -17,7 +17,7 @@ Coming improvements:
  - Database
  - ?
 
-![](example.png)
+![img.png](img.png)
 
 What I learned:
  - How to connect variables with each other
