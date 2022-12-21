@@ -228,7 +228,7 @@ public class MainUI {
             // allows to search for more than 1 file at the time
             @Override
             public void actionPerformed(ActionEvent e) {
-                new searchForFileList();
+                StringWorkerWithParameters(true, false);
             }
         });
         helpBtn.addActionListener(new ActionListener() {
@@ -255,6 +255,57 @@ public class MainUI {
         });
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * SwingWorker that open, close or work on a process, deepens on the Parameter that activate it
+     */
+    private void StringWorkerWithParameters(final Boolean first, final Boolean second) {
+        SwingWorker<Boolean, Integer> swingWorker = new SwingWorker<Boolean, Integer>() {
+            @Override
+            protected Boolean doInBackground() throws Exception {
+                if (first == true && second == false) {
+                    System.out.println("first true");
+                    new searchForFileList();
+                }
+                if (second == true && first == false) {
+                    System.out.println("second true");
+                }
+                if (first == true && second == true) {
+                    System.out.println("first and second true");
+                }
+                if (first == false && second == false) {
+                    System.out.println("first and second false");
+                }
+                return first && second;
+            }
+
+            @Override
+            protected void process(List<Integer> chunks) {
+                int value = chunks.get(chunks.size());
+                System.out.println(value);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    Boolean status = get();
+                    System.out.println(status);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        swingWorker.execute();
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /**
      * Swing Worker
      * while searching files, the GUI can't still be used

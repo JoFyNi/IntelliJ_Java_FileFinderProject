@@ -5,18 +5,19 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 public class searchForFileList extends JFrame {
-
     JPanel panel;
     JTextArea textArea;
     JScrollPane scrollPane;
     JButton button;
+    JOptionPane optionPane;
     public searchForFileList() {
         panel = new JPanel();
+        optionPane = new JOptionPane();
         textArea = new JTextArea();
-        scrollPane = new JScrollPane();
+        scrollPane = new JScrollPane(textArea);
         button = new JButton("search");
         this.setContentPane(panel);
         panel.setLayout(null);
@@ -25,8 +26,9 @@ public class searchForFileList extends JFrame {
         scrollPane.add(textArea);
         panel.setBounds(5,5,390,290);
         textArea.setBounds(5,5,390,290);
-        button.setBounds(30,100,100,25);
+        button.setBounds(300,0,100,25);
 
+        this.add(optionPane);
         this.add(button);
         this.add(scrollPane);
         this.add(textArea);
@@ -38,18 +40,28 @@ public class searchForFileList extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 // read list and give it to searchThread
                 System.out.println("try");
-                Collection<File> files = new ArrayList<File>();
-                File file = new File(textArea.getText());
-                //Collection<File> all = new ArrayList<File>();
-                //addTree(new File(textArea.getText()), all);
-                String typ = "**";
-                for (String line : textArea.getText().split("\\n")) new searchThreadWithSelectedType(line, typ);
-                textArea.setText("");
+
+                List<String> list = new ArrayList<String>();
+                list.add(textArea.getText().toString());
+
+                for (int i=0; i< list.size(); i++) {
+                    System.out.println(list.get(i));
+                    SwingWorker(list.get(i));
+                }
             }
         });
     }
-
-    public static void main(String[] args) {
-        searchForFileList obj = new searchForFileList();
+    public void SwingWorker(final String list) {
+        SwingWorker<Boolean, Integer> worker = new SwingWorker<Boolean, Integer>() {
+            @Override
+            protected Boolean doInBackground() throws Exception {
+                System.out.println("swing");
+                // new Table data
+                File file = new File(list);
+                new searchThread(file.getName(), file);
+                return null;
+            }
+        };
+        worker.execute();
     }
 }

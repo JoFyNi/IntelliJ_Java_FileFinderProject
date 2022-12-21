@@ -16,7 +16,7 @@ public class searchThread extends Thread{
                 }
                 else if (name.equalsIgnoreCase(fil.getName()))
                 {
-                    //System.out.println(fil.getParentFile());
+                    System.out.println(fil.getParentFile());
                 }
             }
     }
@@ -26,7 +26,7 @@ public class searchThread extends Thread{
         for (int i=0; i<1;i++) {
             try {
                 Collection<File> all = new ArrayList<File>();
-                addTree(new File("C:\\Users\\j.nievelstein\\Java\\Ausleihe\\src\\main\\java\\componenten\\geraete"), all);
+                addTree(new File("C:\\Users\\"), all);
 
                 System.out.println(all);
                 Thread.sleep(1000);
@@ -42,8 +42,8 @@ public class searchThread extends Thread{
             for (File child : children) {
                 all.add(child);
                 addTree(child, all);
-                //anzeige.append(child + System.lineSeparator());    // mit getName() nur FileNamen anzeigen? (momentan path)
-                //System.out.println(child + System.lineSeparator());
+                //textArea.append(child + System.lineSeparator());    // mit getName() nur FileNamen anzeigen? (momentan path)
+                System.out.println(child + System.lineSeparator());
                 return child;
             }
         }
