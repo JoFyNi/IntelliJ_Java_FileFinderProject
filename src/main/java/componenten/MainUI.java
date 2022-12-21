@@ -277,13 +277,11 @@ public class MainUI {
                 }
                 return true;
             }
-
             @Override
             protected void process(List<Integer> chunks) {
                 int value = chunks.get(chunks.size());
                 countLabel.setText("files: " + value);
             }
-
             @Override
             protected void done() {
                 try {
@@ -298,7 +296,6 @@ public class MainUI {
         };
         fileWorker.execute();
     }
-
     /**
      * Swing Worker
      * while searching files, the GUI can't still be used
@@ -341,13 +338,11 @@ public class MainUI {
                 }
                 return true;
             }
-
             @Override
             protected void process(List<Integer> chunks) {
                 int value = chunks.get(chunks.size());
                 countLabel.setText("files: " + value);
             }
-
             @Override
             protected void done() {
                 try {
