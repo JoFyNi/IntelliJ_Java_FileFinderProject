@@ -17,6 +17,7 @@ Coming improvements:
  - Database
  - ?
 
+![img.png](img.png)
 
 What I learned:
  - How to connect variables with each other
@@ -33,23 +34,4 @@ What I'm about to learn:
  - Methods to auto-detect drivers
  - Import data from Excel to a JTable and revers
  - Improving myself
-
-
-Example:
-
-try {
-    if (parameter < constant) {
-        do something
-        BufferedReader br = new BufferedReader(.....);
-        ....etc...
-    } else {
-        do something else
-    }
-} catch (IOExecution e) {
-   e.printTreeStack;
-}
-
-inside Thread
-BufferedWriter bw = new BufferedWriter(...);
-br.....
 

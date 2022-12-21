@@ -1,7 +1,7 @@
 package componenten;
 
 import javax.swing.*;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 
 public class Main {
 
@@ -12,14 +12,14 @@ public class Main {
             public void run() {
                 try {
                     createGUI();
-                } catch (FileNotFoundException | InterruptedException e) {
+                } catch (InterruptedException | IOException e) {
                     throw new RuntimeException(e);
                 }
             }
         });
     }
 
-    private static void createGUI() throws FileNotFoundException, InterruptedException {
+    private static void createGUI() throws IOException, InterruptedException {
         MainUI ui = new MainUI();
         JPanel root = ui.getRootPanel();
         JFrame frame = new JFrame();

@@ -12,10 +12,8 @@ import java.awt.event.*;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
 
@@ -38,6 +36,7 @@ public class MainUI {
     private JButton pathInputBtn;
     private JLabel pathLabel;
     private JLabel fileLabel;
+    private JLabel countLabel;
     // export parameter
     private String typ = "**";
     private String driver;
@@ -46,9 +45,9 @@ public class MainUI {
     // Tutorials/ help
     // editable JTable https://www.codejava.net/java-se/swing/editable-jtable-example
     // https://www.youtube.com/watch?v=xk4_1vDrzzo&list=TLPQMjMxMTIwMjJsbEKGZ80Atg&index=6
-    public MainUI() throws FileNotFoundException, InterruptedException {
-        pathInput.setText("C:\\Users\\j.nievelstein\\Java");
-        fileInput.setText("_Briefvorlagegrbv");
+    public MainUI() throws IOException, InterruptedException {
+        pathInput.setText("C:\\Users\\");
+        fileInput.setText("file");
         buttons();
         selectDrivers();
         selectDataType();
@@ -69,12 +68,7 @@ public class MainUI {
                 int key = e.getKeyCode();
                 if (key == KeyEvent.VK_ENTER)
                 {
-                    // clear the Table
-                    DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
-                    dm.getDataVector().removeAllElements();
-                    dm.fireTableDataChanged();
-                    // new Table data
-                    searchThreadWithSelectedType(fileInput.getText(), typ);
+                    searchFilesWithSwingWorker();
                 } else if (fileInput.getText() == "") {
                     // get All files
                     Collection<File> all = new ArrayList<File>();
@@ -87,95 +81,21 @@ public class MainUI {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // clear the Table
-                DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
-                dm.getDataVector().removeAllElements();
-                dm.fireTableDataChanged();
-                // new Table data
-                searchThreadWithSelectedType(fileInput.getText(), typ);
-
-                 if (fileInput.getText() == "") {
-                    // get All files
-                    Collection<File> all = new ArrayList<File>();
-                    searchAll(new File(pathInput.getText()), all);
-                }
+                searchFilesWithSwingWorker();
             }
         });
         // searching with pathInput value
         pathInput.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                // clear the Table
-                DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
-                dm.getDataVector().removeAllElements();
-                dm.fireTableDataChanged();
-                // new Table data
-                int key = e.getKeyCode();
-                String fileName = fileInput.getText();
-                String PATH = "C:\\";
-                String directoryName = PATH.concat(String.valueOf(this.getClass()));
-                File directory = new File(directoryName);
-                if (key == KeyEvent.VK_ENTER) {
-                    if (directory.exists()) {
-                        // get All files
-                        Collection<File> all = new ArrayList<File>();
-                        addTree(new File(pathInput.getText()), all);
-                        System.out.println("Path exists");
-                    }
-                    if (!directory.exists()) {
-                        directory.mkdir();
-                        // If you require it to make the entire directory path including parents,
-                        // use directory.mkdirs(); here instead.
-                        System.out.println("Path doesn't exists");
-                    }
-                    File file = new File(directoryName + "/" + fileName);
-                    try {
-                        FileWriter fw = new FileWriter(file.getAbsoluteFile());
-                        BufferedWriter bw = new BufferedWriter(fw);
-                        bw.write(pathInput.getText());
-                        bw.close();
-                    } catch (IOException eeee) {
-                        eeee.printStackTrace();
-                        System.exit(-1);
-                    }
-                }
+                searchPathsWithSwingWorker();
                 super.keyPressed(e);
             }
         });
         pathInputBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // clear the Table
-                DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
-                dm.getDataVector().removeAllElements();
-                dm.fireTableDataChanged();
-                // new Table data
-                String fileName = fileInput.getText();
-                String PATH = "C:\\";
-                String directoryName = PATH.concat(String.valueOf(this.getClass()));
-                File directory = new File(directoryName);
-                if (directory.exists()) {
-                    // get All files
-                    Collection<File> all = new ArrayList<File>();
-                    addTree(new File(pathInput.getText()), all);
-                    System.out.println("Path exists");
-                }
-                if (!directory.exists()) {
-                    directory.mkdir();
-                    // If you require it to make the entire directory path including parents,
-                    // use directory.mkdirs(); here instead.
-                    System.out.println("Path doesn't exists");
-                }
-                File file = new File(directoryName + "/" + fileName);
-                try {
-                    FileWriter fw = new FileWriter(file.getAbsoluteFile());
-                    BufferedWriter bw = new BufferedWriter(fw);
-                    bw.write(pathInput.getText());
-                    bw.close();
-                } catch (IOException eeee) {
-                    eeee.printStackTrace();
-                    System.exit(-1);
-                }
-
+                searchPathsWithSwingWorker();
             }
         });
         listTable.addMouseListener(new MouseAdapter() {
@@ -333,27 +253,114 @@ public class MainUI {
                 dm.fireTableDataChanged();
             }
         });
-        /**
-         * file.getName();
-         * file.getPath();
-         * file.getEdit();
-         * file.getTime();
-         * file.getFileIcon
-         * Object[][]data={{fileName,filePath,fileEdit,fileTime}.../=}
-         * foreach {
-         * listTable.setModel(new DefaultTableModel(data, headings));
-         * }
-         * File für jede Komponente
-         *      file = file[]
-         *      pfad = path[]
-         *      auto = autor[]
-         *      datum -> getDate(tag an welchem hinzugefügt)
-         *
-         * editor erstellen
-         * -> öffnen von Dateien (Format anpassungen)
-         * -> Import/Export
-         * -> schreiben
-         */
+    }
+
+    /**
+     * Swing Worker
+     * while searching files, the GUI can't still be used
+     * files get listed instand
+     */
+    private void searchFilesWithSwingWorker() {
+        SwingWorker<Boolean, Integer> fileWorker = new SwingWorker<Boolean, Integer>() {
+            @Override
+            protected Boolean doInBackground() throws Exception {
+                DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
+                dm.getDataVector().removeAllElements();
+                dm.fireTableDataChanged();
+                // new Table data
+                searchThreadWithSelectedType(fileInput.getText(), typ);
+
+                if (fileInput.getText() == "") {
+                    // get All files
+                    Collection<File> all = new ArrayList<File>();
+                    searchAll(new File(pathInput.getText()), all);
+                }
+                return true;
+            }
+
+            @Override
+            protected void process(List<Integer> chunks) {
+                int value = chunks.get(chunks.size());
+                countLabel.setText("files: " + value);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    Boolean staus = get();
+                    fileLabel.setText("Completed with status: " + staus);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        fileWorker.execute();
+    }
+
+    /**
+     * Swing Worker
+     * while searching files, the GUI can't still be used
+     * files get listed instand
+     */
+    private void searchPathsWithSwingWorker() {
+        SwingWorker<Boolean, Integer> PathWorker = new SwingWorker<Boolean, Integer>() {
+            @Override
+            protected Boolean doInBackground() throws Exception {
+                // clear the Table
+                DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
+                dm.getDataVector().removeAllElements();
+                dm.fireTableDataChanged();
+                // new Table data
+                String fileName = fileInput.getText();
+                String PATH = "C:\\";
+                String directoryName = PATH.concat(String.valueOf(this.getClass()));
+                File directory = new File(directoryName);
+                if (directory.exists()) {
+                    // get All files
+                    Collection<File> all = new ArrayList<File>();
+                    addTree(new File(pathInput.getText()), all);
+                    System.out.println("Path exists");
+                }
+                if (!directory.exists()) {
+                    directory.mkdir();
+                    // If you require it to make the entire directory path including parents,
+                    // use directory.mkdirs(); here instead.
+                    System.out.println("Path doesn't exists");
+                }
+                File file = new File(directoryName + "/" + fileName);
+                try {
+                    FileWriter fw = new FileWriter(file.getAbsoluteFile());
+                    BufferedWriter bw = new BufferedWriter(fw);
+                    bw.write(pathInput.getText());
+                    bw.close();
+                } catch (IOException eeee) {
+                    eeee.printStackTrace();
+                    System.exit(-1);
+                }
+                return true;
+            }
+
+            @Override
+            protected void process(List<Integer> chunks) {
+                int value = chunks.get(chunks.size());
+                countLabel.setText("files: " + value);
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    Boolean staus = get();
+                    pathLabel.setText("Completed with status: " + staus);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        PathWorker.execute();
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /** searching file from fileInput (name)
@@ -382,6 +389,7 @@ public class MainUI {
             finder.done();
         }
         System.out.println("Total Matched Number of Files : " + finalTotal);
+        countLabel.setText("Files : " + finalTotal);
     }
     private class Finder extends SimpleFileVisitor<Path> {
         private final PathMatcher matcher;
@@ -519,18 +527,23 @@ public class MainUI {
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /** ComboBox for driver Selection -> select driver for small amount (search speed increase)
+    /** ComboBox for driver Selection -> select driver for smaller amount (search speed increase)
      * not working correctly -> need improvement
      * scann from a to z
      */
     private void selectDrivers() {   // comboBox
-        driverSelector.setModel(new DefaultComboBoxModel(new String[]{"C", "Q", "W"}));
+        final Path[][] driverArray = {{Paths.get("C:\\")}};
+        //final Path driverPaths = Paths.get("C:\\");
         driverSelector.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (e.getSource()==driverSelector) {
-                    if (driverSelector.getSelectedItem()=="C") {
-                        driver = "C:\\";
+                    if (Files.exists(Paths.get("D:\\"))) {
+                            Path dPath = Paths.get("D:\\");
+                            List driverList = new ArrayList(Arrays.asList(driverArray[0]));
+                            driverList.add(dPath);
+                            driverArray[0] = (Path[]) driverList.toArray(driverArray[0]);
+                        //driver = "C:\\";
                     } else if (driverSelector.getSelectedItem()=="Q"){
                         driver = "Q:\\";
                     } else if (driverSelector.getSelectedItem()=="W") {
@@ -543,6 +556,7 @@ public class MainUI {
                 }
             }
         });
+        driverSelector.setModel(new DefaultComboBoxModel(new Path[][]{driverArray[0]}));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -552,8 +566,35 @@ public class MainUI {
      * make selectType to a automated typ getter
      * get all typ's that are displayed on the JTable
      * */
-    private void selectDataType() {
+    private void typScann() {
         dataType.setModel(new DefaultComboBoxModel(new String[]{"typ","txt", "ods","pdf","ai","eps","psd","doc","docx","ppt","pptx","pps","ppsm","ppsx","xls","xlsx"}));
+        int selectedColumn = 0;
+        int selectedRow = listTable.getSelectedRow();
+        //String selectedValue = listTable.getModel().getValueAt(selectedRow, selectedColumn).toString();
+        //String[] stringSplitter = listTable.getValueAt(selectedRow, selectedColumn).toString().split(".");
+
+        try {
+            BufferedReader dataTypBuffReader = new BufferedReader(new FileReader(listTable.getModel().getValueAt(selectedRow, selectedColumn).toString()));
+            String line = null;
+            StringBuilder text = new StringBuilder();
+            while ((line = dataTypBuffReader.readLine()) != null) {
+                int endIndex = -1;
+                int limit = 0;
+
+                while (line.indexOf(',', endIndex + 1) >= 0 && limit < 5) {
+                    endIndex = line.indexOf(',', endIndex + 1);
+                    limit++;
+                }
+                System.out.println(line.substring(0, endIndex));
+                text.append(line.substring(0, endIndex));
+            }
+            System.out.println("text=" + text);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    private void selectDataType() throws IOException {
+        //typScann();
         dataType.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -603,7 +644,7 @@ public class MainUI {
             }
         });
     }
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /**
      * createObject opens a search frame
      * select a file -> selected file get list in JTable
@@ -648,7 +689,7 @@ public class MainUI {
         sheet.createRow(startRow);
         FileOutputStream outputStream = new FileOutputStream("fileListe.xlsx");
         workbook.write(outputStream);
-        File file = new File("C:\\Users\\j.nievelstein\\Java\\Ausleihe\\src\\main\\java\\componenten\\geraete");
+        File file = new File("C:\\Users\\");
         final int expectedRowResult = 5;
         //Assertions.assertEquals(expectedRowResult, workbook.getSheetAt(0).getLastRowNum());
         outputStream.close();
@@ -683,7 +724,7 @@ public class MainUI {
     // not implemented yet (not working correctly)
     private void exportList() {
 
-        TreeMap<String, Object[]> data = new TreeMap<>();
+        TreeMap<String, Object[]> data = new TreeMap<String, Object[]>();
         data.put("0", new Object[]{listTable.getColumnName(0), listTable.getColumnName(1), listTable.getColumnName(2), listTable.getColumnName(3)});
         data.put("1", new Object[]{getCellVal(0, 0), getCellVal(0, 1), getCellVal(0, 2), getCellVal(0, 3)});
         data.put("2", new Object[]{getCellVal(1, 0), getCellVal(1, 1), getCellVal(1, 2), getCellVal(1, 3)});

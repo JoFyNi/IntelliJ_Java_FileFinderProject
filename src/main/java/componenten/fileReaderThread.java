@@ -12,13 +12,13 @@ import java.util.List;
 
 public class fileReaderThread{
 
-    public static void fileReaderThread(String Pfad, String fileName, String typ) throws IOException {
+    public static void fileReaderThread(final String Pfad, final String fileName, final String typ) throws IOException {
         JFrame frame = new JFrame("readUsingFiles");
         frame.setSize(400, 600);
         frame.setLocation(1200, 150);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setDefaultLookAndFeelDecorated(true);
-        JTextArea TextArea = new JTextArea("Inhalt");
+        final JTextArea TextArea = new JTextArea("Inhalt");
         TextArea.setBounds(0,0,400,560);
         TextArea.setEditable(true);
         TextArea.setLineWrap(true);
