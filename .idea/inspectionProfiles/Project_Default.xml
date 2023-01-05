@@ -1,0 +1,9 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="Dependency" enabled="true" level="INFORMATION" enabled_by_default="true" />
+    <inspection_tool class="MissingDeprecatedAnnotationOnScheduledForRemovalApi" enabled="true" level="INFORMATION" enabled_by_default="true" />
+    <inspection_tool class="MustAlreadyBeRemovedApi" enabled="true" level="INFORMATION" enabled_by_default="true" />
+    <inspection_tool class="Since15" enabled="true" level="INFORMATION" enabled_by_default="true" />
+  </profile>
+</component>

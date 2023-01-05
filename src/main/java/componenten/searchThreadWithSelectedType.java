@@ -13,6 +13,11 @@ public class searchThreadWithSelectedType extends Thread {
     // fileSystem -> https://www.straub.as/java/history/file-files-paths-path-fileSystems-fileSystem-fileStore.html
     private static int finalTotal = 0;
 
+    /**
+     * call this Method with a file name and a filetype like docs or pdf.
+     * If you want to search a file with all kind of filetypes you can use **
+     * This method is checking every driver step by step and print the results inside the console
+     */
     public searchThreadWithSelectedType(String file, String typ) {
         File[] paths;
         FileSystemView fsv = FileSystemView.getFileSystemView();

@@ -12,6 +12,9 @@ import java.util.List;
 
 public class fileReaderThread{
 
+    /**
+     * Call this Method to open a new JFrame with the information from the selected file
+     */
     public static void fileReaderThread(final String Pfad, final String fileName, final String typ) throws IOException {
         JFrame frame = new JFrame("readUsingFiles");
         frame.setSize(400, 600);

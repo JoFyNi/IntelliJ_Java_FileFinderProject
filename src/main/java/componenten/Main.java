@@ -5,7 +5,7 @@ import java.io.IOException;
 
 public class Main {
 
-    // add something
+    // Main Method that starts the programm
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -18,7 +18,7 @@ public class Main {
             }
         });
     }
-
+    // createGUI is creating and opening a JFrame (the programm)
     private static void createGUI() throws IOException, InterruptedException {
         MainUI ui = new MainUI();
         JPanel root = ui.getRootPanel();

@@ -13,6 +13,10 @@ public class searchThreadForFileList extends Thread {
 
     private static int finalTotal = 0;
 
+    /**
+     * Call this Method with a file name or collection of files
+     * the programm will search for all files on the drivers step by step and print the results inside the console
+     */
     public searchThreadForFileList(File file, Collection<File> fileList) {
         File[] paths;
         FileSystemView fsv = FileSystemView.getFileSystemView();
@@ -50,9 +54,6 @@ public class searchThreadForFileList extends Thread {
                 new searchThreadForFileList(child, fileList);
             }
         }
-
-
-
     }
 
     public static class Finder
