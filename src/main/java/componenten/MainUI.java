@@ -14,6 +14,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
 
@@ -70,9 +71,7 @@ public class MainUI {
                 {
                     searchFilesWithSwingWorker();
                 } else if (fileInput.getText() == "") {
-                    // get All files
-                    Collection<File> all = new ArrayList<File>();
-                    searchAll(new File(pathInput.getText()), all);
+                    fileLabel.setText("enter a file name");
                 }
                 super.keyPressed(e);
             }
@@ -312,26 +311,69 @@ public class MainUI {
      * files get listed instand
      */
     private void searchFilesWithSwingWorker() {
-        SwingWorker<Boolean, Integer> fileWorker = new SwingWorker<Boolean, Integer>() {
+        SwingWorker<Boolean, File> fileWorker = new SwingWorker<Boolean, File>() {
             @Override
             protected Boolean doInBackground() throws Exception {
+                // Get the selected driver
+                Object selectedDriver = driverSelector.getSelectedItem();
+                if (selectedDriver == null) {
+                    // "All" option is selected
+                    driver = "All";
+                } else {
+                    driver = selectedDriver.toString();
+                }
+
+                // Clear the table
                 DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
                 dm.getDataVector().removeAllElements();
                 dm.fireTableDataChanged();
-                // new Table data
+
+                // Search for files with the selected type
                 searchThreadWithSelectedType(fileInput.getText(), typ);
 
-                if (fileInput.getText() == "") {
-                    // get All files
-                    Collection<File> all = new ArrayList<File>();
-                    searchAll(new File(pathInput.getText()), all);
+                // Create a list of FileSearchTask objects, one for each file type
+                List<String> allTypes = new ArrayList<>();
+                allTypes.add(".**");
+                List<FileSearchTask> tasks = new ArrayList<>();
+
+                // Check which driver is selected
+                if (driver.equals("All")) {
+                    // "All" option is selected, so create a task for each driver
+                    File[] roots = File.listRoots();
+                    for (File root : roots) {
+                        for (String fileType : allTypes) {
+                            FileSearchTask task = new FileSearchTask(root, fileInput.getText(), fileType);
+                            tasks.add(task);
+                        }
+                    }
+                } else {
+                    // A specific driver is selected, so create a task only for that driver
+                    File selectedRoot = new File(driver);
+                    for (String fileType : allTypes) {
+                        FileSearchTask task = new FileSearchTask(selectedRoot, fileInput.getText(), fileType);
+                        tasks.add(task);
+                    }
                 }
+                // Execute the tasks using the ExecutorService
+                for (FileSearchTask task : tasks) {
+                    Executor executor = null;
+                    executor.execute(task);
+                }
+                // Wait for all tasks to complete
+                for (FileSearchTask task : tasks) {
+                    task.waitUntilDone();
+                }
+
                 return true;
             }
             @Override
-            protected void process(List<Integer> chunks) {
-                int value = chunks.get(chunks.size());
-                countLabel.setText("files: " + value);
+            protected void process(List<File> chunks) {
+                DefaultTableModel model = (DefaultTableModel) listTable.getModel();
+                for (File file : chunks) {
+                    model.addRow(new Object[] { file.getName(), file.getAbsolutePath() });
+                    listTable.setModel(model);
+                    model.setColumnCount(listTable.getColumnCount());
+                }
             }
             @Override
             protected void done() {
@@ -391,7 +433,10 @@ public class MainUI {
             }
             @Override
             protected void process(List<Integer> chunks) {
-                int value = chunks.get(chunks.size());
+                int value = 0;
+                for (int count : chunks) {
+                    value += count;
+                }
                 countLabel.setText("files: " + value);
             }
             @Override
@@ -503,28 +548,6 @@ public class MainUI {
             return CONTINUE;
         }
     }
-/*
-    private void forEachDirectory(File f) throws IOException {
-        FileFilter directoryFilter = new FileFilter() {
-            public boolean accept(File file) {
-                return file.isDirectory();
-            }
-        };
-
-        File[] files = f.listFiles(directoryFilter);
-        for (File file : files) {
-            if (file.isDirectory()) {
-                System.out.print("directory:");
-                ProcessingMultiThread processingMultiThread = new ProcessingMultiThread(file);
-                processingMultiThread.start();
-            } else {
-                System.out.print("     file:");
-            }
-            System.out.println(file.getCanonicalPath());
-        }
-    }
-
- */
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     private void addTree(File file, Collection<File> all) {
         File[] children = file.listFiles();
@@ -577,32 +600,38 @@ public class MainUI {
      * not working correctly -> need improvement
      * scann from a to z
      */
-    private void selectDrivers() {   // comboBox
-        final Path[][] driverArray = {{Paths.get("C:\\")}};
-        //final Path driverPaths = Paths.get("C:\\");
+    private void selectDrivers() {
+        // Initialize the driverArray with all available drives
+        File[] roots = File.listRoots();
+        Path[] driverArray = new Path[roots.length];
+        for (int i = 0; i < roots.length; i++) {
+            driverArray[i] = roots[i].toPath();
+        }
+
+        // Add an action listener to the driverSelector combo box
         driverSelector.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (e.getSource()==driverSelector) {
-                    if (Files.exists(Paths.get("D:\\"))) {
-                            Path dPath = Paths.get("D:\\");
-                            List driverList = new ArrayList(Arrays.asList(driverArray[0]));
-                            driverList.add(dPath);
-                            driverArray[0] = (Path[]) driverList.toArray(driverArray[0]);
-                        //driver = "C:\\";
-                    } else if (driverSelector.getSelectedItem()=="Q"){
-                        driver = "Q:\\";
-                    } else if (driverSelector.getSelectedItem()=="W") {
-                        driver = "W:\\";
+                if (e.getSource() == driverSelector) {
+                    // Get the selected driver
+                    Object selectedItem = driverSelector.getSelectedItem();
+                    if (selectedItem == null) {
+                        // "All" option is selected
+                        driver = "All";
                     } else {
-                        System.out.println("error");
+                        driver = selectedItem.toString();
                     }
-                    System.out.println("Selected driver: "+driver);
+                    System.out.println("Selected driver: " + driver);
                     new driverGetter();
                 }
             }
         });
-        driverSelector.setModel(new DefaultComboBoxModel(new Path[][]{driverArray[0]}));
+
+        // Add all available drivers to the driverSelector JComboBox
+        driverSelector.addItem(null); // Add "All" option
+        for (Path path : driverArray) {
+            driverSelector.addItem(path);
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -790,6 +819,48 @@ public class MainUI {
         }
     }
 
+    private class FileSearchTask implements Runnable {
+
+        private final File rootDirectory;
+        private final String searchString;
+        private final String fileType;
+        private boolean done;
+        private int count;
+
+        private FileSearchTask(File rootDirectory, String searchString, String fileType) {
+            this.rootDirectory = rootDirectory;
+            this.searchString = searchString;
+            this.fileType = fileType;
+        }
+        @Override
+        public void run() {
+            search(rootDirectory, searchString, fileType);
+            done = true;
+            //publish(count);
+        }
+        private void search(File rootDirectory, String searchString, String fileType) {
+            File[] files = rootDirectory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        search(file, searchString, fileType);
+                    } else if (file.getName().endsWith(fileType) && file.getName().contains(searchString)) {
+                        count++;
+                    }
+                }
+            }
+        }
+        public synchronized void waitUntilDone() {
+            while (!done) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+            }
+        }
+
+    }
 }
 // created with https://www.youtube.com/watch?v=3m1j3PiUeVI
 
