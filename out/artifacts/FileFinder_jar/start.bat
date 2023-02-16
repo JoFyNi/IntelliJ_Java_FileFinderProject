@@ -1,3 +1,3 @@
 @echo off
-java -jar FileFinder.jar
+start javaw -jar FileFinder.jar
 exit

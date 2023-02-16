@@ -108,12 +108,14 @@ public class MainUI {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)){
-
-                    //int selectedRow = listTable.getSelectedRow();
-                    //int selectedValue = listTable.getModel().getValueAt(selectedRow, selectedColumn).toString();
-                    //fileOpenerThread fileOpenerThread = new fileOpenerThread(new File(selectedValue));
-                    //fileOpenerThread.start();
-                    //fileReaderThread.fileReaderThread(pathInput.getText(),fileInput.getText(),typ);
+                    System.out.println(e.getSource());
+                    int selectedRow = listTable.getSelectedRow();
+                    if (selectedRow != -1) {
+                        Object selectedPath = listTable.getValueAt(selectedRow, 0);
+                        Object selectedFile = listTable.getValueAt(selectedRow, 1);
+                        fileLabel.setText(selectedFile.toString());
+                        pathLabel.setText(selectedPath.toString());
+                    }
                 }
                 if (SwingUtilities.isRightMouseButton(e)){
                     popupMenu.add(addItem);
@@ -337,6 +339,9 @@ public class MainUI {
                 List<FileSearchTask> tasks = new ArrayList<>();
 
                 // Check which driver is selected
+                /**
+                 * TODO adding selected driver to search algorithm to search only on selected driver
+                 */
                 if (driver.equals("All")) {
                     // "All" option is selected, so create a task for each driver
                     File[] roots = File.listRoots();
@@ -770,26 +775,6 @@ public class MainUI {
         outputStream.close();
         file.delete();
         workbook.close();
-
-        //System.setProperty("log4j.configurationFile","./path_to_the_log4j2_config_file/log4j2.xml");
-        //Logger log = LogManager.getLogger(LogExample.class.getName());
-
-        //Object[][] data = {{"Laptop", "B4FG98E", "Heinz", 29.03}, {"Laptop", "OS26J6E", "Heinrich", 15.11}, {"Laptop", "OK29J2", "Ernst", 09.08}};
-        //listTable.setModel(new DefaultTableModel(data, headings));  // data and Header
-        /*
-        TableColumnModel columns = listTable.getColumnModel();
-        columns.getColumn(0).setMaxWidth(200);
-        columns.getColumn(1).setMaxWidth(200);
-        columns.getColumn(2).setMaxWidth(200);
-        columns.getColumn(3).setMaxWidth(200);
-
-        DefaultTableCellRenderer centerRender = new DefaultTableCellRenderer();
-        centerRender.setHorizontalAlignment(JLabel.CENTER);
-        columns.getColumn(0).setCellRenderer(centerRender);
-        columns.getColumn(1).setCellRenderer(centerRender);
-        columns.getColumn(2).setCellRenderer(centerRender);
-        columns.getColumn(3).setCellRenderer(centerRender);
-         */
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // x = columns, y = rows
@@ -797,28 +782,6 @@ public class MainUI {
         return listTable.getValueAt(x, y).toString();
     }
     // not implemented yet (not working correctly)
-    private void exportList() {
-
-        TreeMap<String, Object[]> data = new TreeMap<String, Object[]>();
-        data.put("0", new Object[]{listTable.getColumnName(0), listTable.getColumnName(1), listTable.getColumnName(2), listTable.getColumnName(3)});
-        data.put("1", new Object[]{getCellVal(0, 0), getCellVal(0, 1), getCellVal(0, 2), getCellVal(0, 3)});
-        data.put("2", new Object[]{getCellVal(1, 0), getCellVal(1, 1), getCellVal(1, 2), getCellVal(1, 3)});
-        data.put("3", new Object[]{getCellVal(2, 0), getCellVal(2, 1), getCellVal(2, 2), getCellVal(2, 3)});
-        data.put("4", new Object[]{getCellVal(3, 0), getCellVal(3, 1), getCellVal(3, 2), getCellVal(3, 3)});
-        data.put("5", new Object[]{getCellVal(4, 0), getCellVal(4, 1), getCellVal(4, 2), getCellVal(4, 3)});
-
-        Set<String> ids = data.keySet();
-        int rowID = 0;
-        for (String key : ids) {
-            Object[] value = data.get(key);
-        }
-        try {
-            FileOutputStream fileOutputStream = new FileOutputStream(new File("U:\\Test.xlsx"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     private class FileSearchTask implements Runnable {
 
         private final File rootDirectory;
@@ -862,11 +825,3 @@ public class MainUI {
 
     }
 }
-// created with https://www.youtube.com/watch?v=3m1j3PiUeVI
-
-
-/**
- * Label that get the selected path -> onclick event
- * copy file / relocate file
- *
- */

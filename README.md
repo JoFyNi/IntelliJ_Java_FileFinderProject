@@ -34,4 +34,3 @@ What I'm about to learn:
  - Methods to auto-detect drivers
  - Import data from Excel to a JTable and revers
  - Improving myself
-
