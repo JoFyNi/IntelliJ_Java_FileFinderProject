@@ -3,6 +3,7 @@ package componenten;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
@@ -22,8 +23,8 @@ public class MainUI {
     // JFrame components
     private JPanel rootPanel;
     private JTable listTable;
-    private JComboBox driverSelector;
-    private JComboBox dataType;
+    private JComboBox<Path> driverSelector;
+    private JComboBox<String> dataType;
     private JTextField pathInput;
     private JTextField fileInput;
     private JButton addObject;
@@ -70,7 +71,7 @@ public class MainUI {
                 if (key == KeyEvent.VK_ENTER)
                 {
                     searchFilesWithSwingWorker();
-                } else if (fileInput.getText() == "") {
+                } else if (fileInput.getText().equals("")) {
                     fileLabel.setText("enter a file name");
                 }
                 super.keyPressed(e);
@@ -98,13 +99,14 @@ public class MainUI {
             }
         });
         listTable.addMouseListener(new MouseAdapter() {
-            JPopupMenu popupMenu = new JPopupMenu();
-            JMenuItem addItem = new JMenuItem("add");
-            JMenuItem openItem = new JMenuItem("open");
-            JMenuItem openInItem = new JMenuItem("open in");
-            JMenuItem copyPathItem = new JMenuItem("copy path");
-            JMenuItem copyNameItem = new JMenuItem("copy Name");
-            String selectedValue = null;;
+            final JPopupMenu popupMenu = new JPopupMenu();
+            final JMenuItem addItem = new JMenuItem("add");
+            final JMenuItem openItem = new JMenuItem("open");
+            final JMenuItem openInItem = new JMenuItem("open in");
+            final JMenuItem copyPathItem = new JMenuItem("copy path");
+            final JMenuItem copyNameItem = new JMenuItem("copy Name");
+            String selectedValue = null;
+
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)){
@@ -153,10 +155,8 @@ public class MainUI {
                                 selectedValue = listTable.getModel().getValueAt(selectedRow, selectedColumn).toString();
                                 fileOpenerThread fileOpenerThread = new fileOpenerThread(new File(selectedValue));
                                 fileOpenerThread.start();
-                            } else if (selectedValue != null){
-                                selectedValue = null;   // creates an error, BUT that's good because selected gets reset
-                                fileOpenerThread fileOpenerThread = new fileOpenerThread(new File(selectedValue));
-                                fileOpenerThread.start();
+                            } else {
+                                selectedValue = null;
                             }
                         }
                     });
@@ -198,10 +198,8 @@ public class MainUI {
                     selectedValue = listTable.getModel().getValueAt(selectedRow, selectedColumn).toString();
                     fileOpenerThread fileOpenerThread = new fileOpenerThread(new File(selectedValue));
                     fileOpenerThread.start();
-                } else if (selectedValue != null){
+                } else {
                     selectedValue = null;
-                    fileOpenerThread fileOpenerThread = new fileOpenerThread(new File(selectedValue));
-                    fileOpenerThread.start();
                 }
             }
         });
@@ -267,17 +265,17 @@ public class MainUI {
         SwingWorker<Boolean, Integer> swingWorker = new SwingWorker<Boolean, Integer>() {
             @Override
             protected Boolean doInBackground() throws Exception {
-                if (first == true && second == false) {
+                if (first && !second) {
                     System.out.println("first true");
                     new searchForFileList();
                 }
-                if (second == true && first == false) {
+                if (second && !first) {
                     System.out.println("second true");
                 }
-                if (first == true && second == true) {
+                if (first && second) {
                     System.out.println("first and second true");
                 }
-                if (first == false && second == false) {
+                if (!first && !second) {
                     System.out.println("first and second false");
                 }
                 return first && second;
@@ -285,7 +283,7 @@ public class MainUI {
 
             @Override
             protected void process(List<Integer> chunks) {
-                int value = chunks.get(chunks.size());
+                int value = chunks.size();
                 System.out.println(value);
             }
 
@@ -294,9 +292,7 @@ public class MainUI {
                 try {
                     Boolean status = get();
                     System.out.println(status);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
+                } catch (InterruptedException | ExecutionException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -339,7 +335,7 @@ public class MainUI {
                 List<FileSearchTask> tasks = new ArrayList<>();
 
                 // Check which driver is selected
-                /**
+                /*
                  * TODO adding selected driver to search algorithm to search only on selected driver
                  */
                 if (driver.equals("All")) {
@@ -361,7 +357,12 @@ public class MainUI {
                 }
                 // Execute the tasks using the ExecutorService
                 for (FileSearchTask task : tasks) {
-                    Executor executor = null;
+                    Executor executor = new Executor() {
+                        @Override
+                        public void execute(@NotNull Runnable command) {
+                            command.run();
+                        }
+                    };
                     executor.execute(task);
                 }
                 // Wait for all tasks to complete
@@ -385,9 +386,7 @@ public class MainUI {
                 try {
                     Boolean staus = get();
                     fileLabel.setText("Completed with status: " + staus);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
+                } catch (InterruptedException | ExecutionException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -449,9 +448,7 @@ public class MainUI {
                 try {
                     Boolean staus = get();
                     pathLabel.setText("Completed with status: " + staus);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
+                } catch (InterruptedException | ExecutionException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -471,7 +468,7 @@ public class MainUI {
         for (File path : paths) {   // first path "C:\" <-- how to get directory's
             String str = path.toString();
             String slash = "\\";
-            String s = new StringBuilder(str).append(slash).toString();
+            String s = str + slash;
             Path startingDirectory = Paths.get(s);      // for each directory new Thread!
             String pattern = file +"."+ typ;    // get mkdir (driver's)
             Finder finder = new Finder(pattern);
@@ -560,7 +557,7 @@ public class MainUI {
             for (File child : children) {
                 all.add(child);
                 addTree(child, all);
-                /**
+                /*
                  * insertRow = neue Zeile mit row[0]/row[1]/row[2]
                  * row[0] = FileName
                  * row[1] = filePath
@@ -570,9 +567,9 @@ public class MainUI {
                 DefaultTableModel model = (DefaultTableModel) listTable.getModel();
                 model.setColumnIdentifiers(new String[]{"Path","Files Names"});
                 listTable.setModel(model);
-                for (int i = 0;i<children.length; i++) {
-                    row[0] = children[i];
-                    row[1] = children[i].getName();
+                for (File value : children) {
+                    row[0] = value;
+                    row[1] = value.getName();
                     model.addRow(row);
                 }
                 //System.out.printf(child + System.lineSeparator());
@@ -591,9 +588,9 @@ public class MainUI {
                 DefaultTableModel model = (DefaultTableModel) listTable.getModel();
                 model.setColumnIdentifiers(new String[]{"Path","Files Names"});
                 listTable.setModel(model);
-                for (int i = 0;i<files.length; i++) {
-                    row[0] = files[i];
-                    row[1] = files[i].getName();
+                for (File value : files) {
+                    row[0] = value;
+                    row[1] = value.getName();
                     model.addRow(row);
                 }
             }
@@ -647,7 +644,7 @@ public class MainUI {
      * get all typ's that are displayed on the JTable
      * */
     private void typScann() {
-        dataType.setModel(new DefaultComboBoxModel(new String[]{"typ","txt", "ods","pdf","ai","eps","psd","doc","docx","ppt","pptx","pps","ppsm","ppsx","xls","xlsx"}));
+        dataType.setModel(new DefaultComboBoxModel<>(new String[]{"typ","txt", "ods","pdf","ai","eps","psd","doc","docx","ppt","pptx","pps","ppsm","ppsx","xls","xlsx"}));
         int selectedColumn = 0;
         int selectedRow = listTable.getSelectedRow();
         //String selectedValue = listTable.getModel().getValueAt(selectedRow, selectedColumn).toString();
@@ -666,7 +663,7 @@ public class MainUI {
                     limit++;
                 }
                 System.out.println(line.substring(0, endIndex));
-                text.append(line.substring(0, endIndex));
+                text.append(line, 0, endIndex);
             }
             System.out.println("text=" + text);
         } catch (IOException ex) {
@@ -714,12 +711,12 @@ public class MainUI {
                     } else if (dataType.getSelectedItem()=="xlsx") {
                         typ = "xlsx";
                     } else {
-                        System.out.printf("error");
+                        System.out.print("error");
                     }
                     System.out.println("DataType: "+typ);
                     //listTable.setModel(new DefaultTableModel(available, headings));
                 } else {
-                    System.out.printf("retry");
+                    System.out.print("retry");
                 }
             }
         });
@@ -782,7 +779,7 @@ public class MainUI {
         return listTable.getValueAt(x, y).toString();
     }
     // not implemented yet (not working correctly)
-    private class FileSearchTask implements Runnable {
+    private static class FileSearchTask implements Runnable {
 
         private final File rootDirectory;
         private final String searchString;
