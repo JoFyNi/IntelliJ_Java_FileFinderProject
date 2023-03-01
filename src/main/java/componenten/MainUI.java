@@ -39,6 +39,7 @@ public class MainUI {
     private JLabel pathLabel;
     private JLabel fileLabel;
     private JLabel countLabel;
+    private JLabel licenseLab;
     // export parameter
     private String typ = "**";
     private String driver;
