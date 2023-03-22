@@ -15,12 +15,12 @@ public class fileReaderThread{
     /**
      * Call this Method to open a new JFrame with the information from the selected file
      */
-    public static void fileReaderThread(final String Pfad, final String fileName, final String typ) throws IOException {
+    public fileReaderThread(final String Pfad, final String fileName, final String typ) throws IOException {
         JFrame frame = new JFrame("readUsingFiles");
         frame.setSize(400, 600);
         frame.setLocation(1200, 150);
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        frame.setDefaultLookAndFeelDecorated(true);
+        JFrame.setDefaultLookAndFeelDecorated(true);
         final JTextArea TextArea = new JTextArea("Inhalt");
         TextArea.setBounds(0,0,400,560);
         TextArea.setEditable(true);
@@ -35,7 +35,6 @@ public class fileReaderThread{
         Path path = Paths.get(Pfad+fileName+typ);
         //read file to byte array
         byte[] bytes = Files.readAllBytes(path);
-        System.out.println("Read text file using Files class");
         //read file to String list
         @SuppressWarnings("unused")
         List<String> allLines = Files.readAllLines(path, StandardCharsets.UTF_8);
@@ -52,10 +51,8 @@ public class fileReaderThread{
                     ausleiheWriter.write(TextArea.getText());
                     //ausleiheWriter.newLine();
                     ausleiheWriter.close();
-                    System.out.printf("saved");
                 } catch (IOException eee) {
                     eee.printStackTrace();
-                    System.out.printf("saving failed");
                 }
             }
         });

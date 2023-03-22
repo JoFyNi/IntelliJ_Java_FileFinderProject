@@ -5,11 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileSearchTasks implements Runnable {
-    private File root;
-    private String fileName;
-    private String fileType;
-    private List<File> results;
-    private List<File> foundFiles;
+    private final String fileType;
+    private final List<File> results;
+    private final List<File> foundFiles;
     private final File rootDirectory;
 
     private final String searchString;

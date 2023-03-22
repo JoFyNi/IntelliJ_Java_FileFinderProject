@@ -19,8 +19,4 @@ public class fileOpenerThread extends Thread{
             }
         }
     }
-
-    public static void main(String[] args) {
-        //new fileOpenerThread();
-    }
 }

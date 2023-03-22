@@ -57,11 +57,9 @@ public class MainUI {
         createObject();
         //exportList();
     }
-
     public JPanel getRootPanel() {
         return rootPanel;
     }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     void buttons() {
         // searching with fileInput value
@@ -107,7 +105,6 @@ public class MainUI {
             final JMenuItem copyPathItem = new JMenuItem("copy path");
             final JMenuItem copyNameItem = new JMenuItem("copy Name");
             String selectedValue = null;
-
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)){
@@ -219,8 +216,6 @@ public class MainUI {
             public void actionPerformed(ActionEvent e){
                 driverScann driverScannThread = new driverScann();
                 driverScannThread.start();
-                //searchThreadWithSelectedType finder = new searchThreadWithSelectedType(fileInput.getText(), typ);
-                //finder.start();
             }
         });
         searchListBtn.addActionListener(new ActionListener() {
@@ -281,13 +276,11 @@ public class MainUI {
                 }
                 return first && second;
             }
-
             @Override
             protected void process(List<Integer> chunks) {
                 int value = chunks.size();
                 System.out.println(value);
             }
-
             @Override
             protected void done() {
                 try {
@@ -300,9 +293,6 @@ public class MainUI {
         };
         swingWorker.execute();
     }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /**
      * Swing Worker
@@ -321,20 +311,16 @@ public class MainUI {
                 } else {
                     driver = selectedDriver.toString();
                 }
-
                 // Clear the table
                 DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
                 dm.getDataVector().removeAllElements();
                 dm.fireTableDataChanged();
-
                 // Search for files with the selected type
                 searchThreadWithSelectedType(fileInput.getText(), typ);
-
                 // Create a list of FileSearchTask objects, one for each file type
                 List<String> allTypes = new ArrayList<>();
                 allTypes.add(".**");
                 List<FileSearchTask> tasks = new ArrayList<>();
-
                 // Check which driver is selected
                 /*
                  * TODO adding selected driver to search algorithm to search only on selected driver
@@ -370,7 +356,6 @@ public class MainUI {
                 for (FileSearchTask task : tasks) {
                     task.waitUntilDone();
                 }
-
                 return true;
             }
             @Override
@@ -559,10 +544,10 @@ public class MainUI {
                 all.add(child);
                 addTree(child, all);
                 /*
-                 * insertRow = neue Zeile mit row[0]/row[1]/row[2]
-                 * row[0] = FileName
-                 * row[1] = filePath
-                 * row[2] = TotalSpace soll später Autor oder Datum sein
+                 insertRow = neue Zeile mit row[0]/row[1]/row[2]
+                 row[0] = FileName
+                 row[1] = filePath
+                 row[2] = TotalSpace soll später Autor oder Datum sein
                  */
                 row = new Object[2];
                 DefaultTableModel model = (DefaultTableModel) listTable.getModel();
@@ -583,8 +568,6 @@ public class MainUI {
             for (File child : files) {          // difference between the child(one file) and all files
                 all.add(child);                 // add the selected file(child) to all files and repeat
                 searchAll(child, all);
-                //Object[][] data = {{child, all}};
-                //listTable.setModel(new DefaultTableModel(data, headings));  // data and Header
                 row = new Object[2];
                 DefaultTableModel model = (DefaultTableModel) listTable.getModel();
                 model.setColumnIdentifiers(new String[]{"Path","Files Names"});
@@ -641,16 +624,13 @@ public class MainUI {
     /**
      * ComboBox for fileType selection
      * typ = ** -> search all kind of fileTypes with the Name from fileInput
-     * make selectType to a automated typ getter
+     * make selectType to an automated typ getter
      * get all typ's that are displayed on the JTable
      * */
     private void typScann() {
         dataType.setModel(new DefaultComboBoxModel<>(new String[]{"typ","txt", "ods","pdf","ai","eps","psd","doc","docx","ppt","pptx","pps","ppsm","ppsx","xls","xlsx"}));
         int selectedColumn = 0;
         int selectedRow = listTable.getSelectedRow();
-        //String selectedValue = listTable.getModel().getValueAt(selectedRow, selectedColumn).toString();
-        //String[] stringSplitter = listTable.getValueAt(selectedRow, selectedColumn).toString().split(".");
-
         try {
             BufferedReader dataTypBuffReader = new BufferedReader(new FileReader(listTable.getModel().getValueAt(selectedRow, selectedColumn).toString()));
             String line = null;
