@@ -1,19 +1,20 @@
 package componenten;
 
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
+import java.awt.*;
+import java.awt.datatransfer.*;
 import java.awt.event.*;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 
@@ -44,6 +45,7 @@ public class MainUI {
     private String typ = "**";
     private String driver;
     private Object[] row;
+    private static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
     // Tutorials/ help
     // editable JTable https://www.codejava.net/java-se/swing/editable-jtable-example
@@ -170,16 +172,18 @@ public class MainUI {
                             int selectedColumn = 0;
                             int selectedRow = listTable.getSelectedRow();
                             selectedValue = listTable.getModel().getValueAt(selectedRow, selectedColumn).toString();
+                            copyToClipboard(selectedValue);
                             pathLabel.setText(selectedValue);
                         }
                     });
                     copyNameItem.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-                            int selectedColumn = 0;
+                            int selectedColumn = 1;
                             int selectedRow = listTable.getSelectedRow();
-                            fileLabel.setText(listTable.getModel().getValueAt(selectedRow,selectedColumn).toString());
-                            // not finished -> has to get fileName not Path
+                            selectedValue = listTable.getModel().getValueAt(selectedRow, selectedColumn).toString();
+                            copyToClipboard(selectedValue);
+                            fileLabel.setText(selectedValue);
                         }
                     });
                 }
@@ -730,29 +734,25 @@ public class MainUI {
         });
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Excel into JTable -> not working yet
-    // when improvement for searching is finish -> finish exports/imports
-    public void givenWorkbook_whenInsertRowBetween_thenRowCreated() throws IOException {
-        String fileLocation = "U:\\TestMappe.xlsx";
-
-        int startRow = 2;
-        int rowNumber = 1;
-        Workbook workbook = new XSSFWorkbook(fileLocation);
-        Sheet sheet = workbook.getSheetAt(0);
-        int lastRow = sheet.getLastRowNum();
-        if (lastRow < startRow) {
-            sheet.createRow(startRow);
+    private static void copyToClipboard(String content) {
+        StringSelection stringSelection = new StringSelection(content);
+        if (content.length() > 0) {
+            stringSelection = new StringSelection(content);
+        } else {
+            return;
         }
-        sheet.shiftRows(startRow, lastRow, rowNumber, true, true);
-        sheet.createRow(startRow);
-        FileOutputStream outputStream = new FileOutputStream("fileListe.xlsx");
-        workbook.write(outputStream);
-        File file = new File("C:\\Users\\");
-        final int expectedRowResult = 5;
-        //Assertions.assertEquals(expectedRowResult, workbook.getSheetAt(0).getLastRowNum());
-        outputStream.close();
-        file.delete();
-        workbook.close();
+        // verschiebe content in clipboard
+        clipboard.setContents(stringSelection, stringSelection);
+        // Ausgabe
+        Transferable transferable = clipboard.getContents(null);
+        if (transferable.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+            try {
+                String ausgabe = (String) transferable.getTransferData(DataFlavor.stringFlavor);
+                System.out.println(ausgabe);
+            } catch (UnsupportedFlavorException | IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // x = columns, y = rows
