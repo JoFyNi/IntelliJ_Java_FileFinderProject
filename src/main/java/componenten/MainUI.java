@@ -31,8 +31,7 @@ public class MainUI {
     private JButton addObject;
     private JButton openBtn;
     private JButton updateBtn;
-    private JButton scannBtn;
-    private JButton searchListBtn;
+    private JButton scanBtn;
     private JButton helpBtn;
     private JButton clearBtn;
     private JButton fileInputBtn;
@@ -41,6 +40,7 @@ public class MainUI {
     private JLabel fileLabel;
     private JLabel countLabel;
     private JLabel licenseLab;
+    private JLabel dirLabel;
     // export parameter
     private String typ = "**";
     private String driver;
@@ -51,7 +51,7 @@ public class MainUI {
     // editable JTable https://www.codejava.net/java-se/swing/editable-jtable-example
     // https://www.youtube.com/watch?v=xk4_1vDrzzo&list=TLPQMjMxMTIwMjJsbEKGZ80Atg&index=6
     public MainUI() throws IOException, InterruptedException {
-        pathInput.setText("C:\\Users\\");
+        pathInput.setText("C:\\Users\\Default\\Documents");
         fileInput.setText("file");
         buttons();
         selectDrivers();
@@ -69,11 +69,15 @@ public class MainUI {
             @Override
             public void keyPressed(KeyEvent e) {
                 int key = e.getKeyCode();
-                if (key == KeyEvent.VK_ENTER)
-                {
-                    searchFilesWithSwingWorker();
-                } else if (fileInput.getText().equals("")) {
-                    fileLabel.setText("enter a file name");
+                if (key == KeyEvent.VK_ENTER) {
+                    File file = new File(fileInput.getText());
+                    if (file.isDirectory()) {
+                        fileLabel.setText("enter a file name (no Path)");
+                    } else if(fileInput.getText().equals("")) {
+                        fileLabel.setText("enter a file name");
+                    } else {
+                        searchFilesWithSwingWorker(fileInput.getText());
+                    }
                 }
                 super.keyPressed(e);
             }
@@ -82,14 +86,19 @@ public class MainUI {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // clear the Table
-                searchFilesWithSwingWorker();
+                searchFilesWithSwingWorker(fileInput.getText());
             }
         });
         // searching with pathInput value
         pathInput.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                searchPathsWithSwingWorker();
+                int key = e.getKeyCode();
+                if (key == KeyEvent.VK_ENTER) {
+                    searchPathsWithSwingWorker();
+                } else {
+                    pathLabel.setText("enter a path name");
+                }
                 super.keyPressed(e);
             }
         });
@@ -110,7 +119,6 @@ public class MainUI {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e)){
-                    System.out.println(e.getSource());
                     int selectedRow = listTable.getSelectedRow();
                     if (selectedRow != -1) {
                         Object selectedPath = listTable.getValueAt(selectedRow, 0);
@@ -214,20 +222,20 @@ public class MainUI {
                 System.out.println("updating");
             }
         });
-        scannBtn.addActionListener(new ActionListener(){
+        scanBtn.addActionListener(new ActionListener(){
             //scann for existing drivers
             @Override
             public void actionPerformed(ActionEvent e){
-                driverScann driverScannThread = new driverScann();
-                driverScannThread.start();
-            }
-        });
-        searchListBtn.addActionListener(new ActionListener() {
-            // opens a JFrame with TextArea -> list into searchThread
-            // allows to search for more than 1 file at the time
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                StringWorkerWithParameters(true, false);
+                int selectedColumn = 1;
+                int selectedRow = listTable.getSelectedRow();
+                if (selectedRow >= 0) {
+                    String selectedValue = listTable.getModel().getValueAt(selectedRow, selectedColumn).toString();
+                    String[] slit = selectedValue.split("\\.");
+                    clearTable();
+                    searchFilesWithSwingWorker(slit[0]);
+                } else {
+                    searchFilesWithSwingWorker(fileInput.getText());
+                }
             }
         });
         helpBtn.addActionListener(new ActionListener() {
@@ -246,14 +254,18 @@ public class MainUI {
         clearBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // clear the Table
-                DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
-                dm.getDataVector().removeAllElements();
-                dm.fireTableDataChanged();
+                clearTable();
             }
         });
     }
-
+    private void clearTable() {
+        // clear the Table
+        DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
+        dm.getDataVector().removeAllElements();
+        dm.fireTableDataChanged();
+        int value = 0;
+        countLabel.setText("files: " + value);
+    }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -303,7 +315,7 @@ public class MainUI {
      * while searching files, the GUI can't still be used
      * files get listed instand
      */
-    private void searchFilesWithSwingWorker() {
+    private void searchFilesWithSwingWorker(final String inputValue) {
         SwingWorker<Boolean, File> fileWorker = new SwingWorker<Boolean, File>() {
             @Override
             protected Boolean doInBackground() throws Exception {
@@ -320,7 +332,7 @@ public class MainUI {
                 dm.getDataVector().removeAllElements();
                 dm.fireTableDataChanged();
                 // Search for files with the selected type
-                searchThreadWithSelectedType(fileInput.getText(), typ);
+                searchThreadWithSelectedType(inputValue, typ);
                 // Create a list of FileSearchTask objects, one for each file type
                 List<String> allTypes = new ArrayList<>();
                 allTypes.add(".**");
@@ -334,7 +346,7 @@ public class MainUI {
                     File[] roots = File.listRoots();
                     for (File root : roots) {
                         for (String fileType : allTypes) {
-                            FileSearchTask task = new FileSearchTask(root, fileInput.getText(), fileType);
+                            FileSearchTask task = new FileSearchTask(root, inputValue, fileType);
                             tasks.add(task);
                         }
                     }
@@ -342,7 +354,7 @@ public class MainUI {
                     // A specific driver is selected, so create a task only for that driver
                     File selectedRoot = new File(driver);
                     for (String fileType : allTypes) {
-                        FileSearchTask task = new FileSearchTask(selectedRoot, fileInput.getText(), fileType);
+                        FileSearchTask task = new FileSearchTask(selectedRoot, inputValue, fileType);
                         tasks.add(task);
                     }
                 }
@@ -391,7 +403,7 @@ public class MainUI {
     private void searchPathsWithSwingWorker() {
         SwingWorker<Boolean, Integer> PathWorker = new SwingWorker<Boolean, Integer>() {
             @Override
-            protected Boolean doInBackground() throws Exception {
+            protected Boolean doInBackground() {
                 // clear the Table
                 DefaultTableModel dm = (DefaultTableModel)listTable.getModel();
                 dm.getDataVector().removeAllElements();
@@ -604,15 +616,19 @@ public class MainUI {
             public void actionPerformed(ActionEvent e) {
                 if (e.getSource() == driverSelector) {
                     // Get the selected driver
+                    String SD = null;
                     Object selectedItem = driverSelector.getSelectedItem();
                     if (selectedItem == null) {
                         // "All" option is selected
                         driver = "All";
-                    } else {
+                        SD = driver;
+                    } else if (selectedItem != null) {
                         driver = selectedItem.toString();
+                        SD = driver;
                     }
                     System.out.println("Selected driver: " + driver);
                     new driverGetter();
+                    dirLabel.setText(SD);
                 }
             }
         });
@@ -623,38 +639,7 @@ public class MainUI {
             driverSelector.addItem(path);
         }
     }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /**
-     * ComboBox for fileType selection
-     * typ = ** -> search all kind of fileTypes with the Name from fileInput
-     * make selectType to an automated typ getter
-     * get all typ's that are displayed on the JTable
-     * */
-    private void typScann() {
-        dataType.setModel(new DefaultComboBoxModel<>(new String[]{"typ","txt", "ods","pdf","ai","eps","psd","doc","docx","ppt","pptx","pps","ppsm","ppsx","xls","xlsx"}));
-        int selectedColumn = 0;
-        int selectedRow = listTable.getSelectedRow();
-        try {
-            BufferedReader dataTypBuffReader = new BufferedReader(new FileReader(listTable.getModel().getValueAt(selectedRow, selectedColumn).toString()));
-            String line = null;
-            StringBuilder text = new StringBuilder();
-            while ((line = dataTypBuffReader.readLine()) != null) {
-                int endIndex = -1;
-                int limit = 0;
-
-                while (line.indexOf(',', endIndex + 1) >= 0 && limit < 5) {
-                    endIndex = line.indexOf(',', endIndex + 1);
-                    limit++;
-                }
-                System.out.println(line.substring(0, endIndex));
-                text.append(line, 0, endIndex);
-            }
-            System.out.println("text=" + text);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
     private void selectDataType() throws IOException {
         //typScann();
         dataType.addActionListener(new ActionListener() {
@@ -755,11 +740,6 @@ public class MainUI {
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // x = columns, y = rows
-    private String getCellVal(int x, int y) {
-        return listTable.getValueAt(x, y).toString();
-    }
-    // not implemented yet (not working correctly)
     private static class FileSearchTask implements Runnable {
 
         private final File rootDirectory;

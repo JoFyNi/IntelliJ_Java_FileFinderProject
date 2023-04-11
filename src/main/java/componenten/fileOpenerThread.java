@@ -12,8 +12,12 @@ public class fileOpenerThread extends Thread{
     public fileOpenerThread(File file) {
         if (Desktop.isDesktopSupported()) {
             try {
-                File myFile = new File("\\"+file);
-                Desktop.getDesktop().open(myFile);
+                if (file.isDirectory()) {
+                    Desktop.getDesktop().open(file.getAbsoluteFile());
+                } else {
+                    File myFile = new File("\\"+file);
+                    Desktop.getDesktop().open(myFile);
+                }
             } catch (IOException ex) {
                 // no application registered for PDFs
             }
