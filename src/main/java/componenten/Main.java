@@ -21,7 +21,7 @@ public class Main {
         MainUI ui = new MainUI();
         JPanel root = ui.getRootPanel();
         JFrame frame = new JFrame();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setContentPane(root);
         frame.pack();
         frame.setSize(1000,600);

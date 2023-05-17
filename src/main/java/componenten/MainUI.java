@@ -3,13 +3,14 @@ package componenten;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileSystemView;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.datatransfer.*;
 import java.awt.event.*;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -36,10 +37,10 @@ public class MainUI {
     private JButton clearBtn;
     private JButton fileInputBtn;
     private JButton pathInputBtn;
+    private JLabel LICENCE_LABEL;
     private JLabel pathLabel;
     private JLabel fileLabel;
     private JLabel countLabel;
-    private JLabel licenseLab;
     private JLabel dirLabel;
     // export parameter
     private String typ = "**";
@@ -50,7 +51,7 @@ public class MainUI {
     // Tutorials/ help
     // editable JTable https://www.codejava.net/java-se/swing/editable-jtable-example
     // https://www.youtube.com/watch?v=xk4_1vDrzzo&list=TLPQMjMxMTIwMjJsbEKGZ80Atg&index=6
-    public MainUI() throws IOException, InterruptedException {
+    public MainUI() {
         pathInput.setText("C:\\Users\\Default\\Documents");
         fileInput.setText("file");
         buttons();
@@ -217,7 +218,7 @@ public class MainUI {
             // updates the JTable
             @Override
             public void actionPerformed(ActionEvent e) {
-                Collection<File> all = new ArrayList<File>();
+                Collection<File> all = new ArrayList<>();
                 addTree(new File(pathInput.getText()), all);
                 System.out.println("updating");
             }
@@ -241,7 +242,7 @@ public class MainUI {
         helpBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(null, "" +
+                JOptionPane.showMessageDialog(null, "\n" +
                         "Input Field     = searching for Input on all Drivers\n" +
                         "Path Field      = listing all files in that location\n" +
                         "search Button   = multi search Option\n" +
@@ -267,49 +268,6 @@ public class MainUI {
         countLabel.setText("files: " + value);
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * SwingWorker that open, close or work on a process, deepens on the Parameter that activate it
-     */
-    private void StringWorkerWithParameters(final Boolean first, final Boolean second) {
-        SwingWorker<Boolean, Integer> swingWorker = new SwingWorker<Boolean, Integer>() {
-            @Override
-            protected Boolean doInBackground() throws Exception {
-                if (first && !second) {
-                    System.out.println("first true");
-                    new searchForFileList();
-                }
-                if (second && !first) {
-                    System.out.println("second true");
-                }
-                if (first && second) {
-                    System.out.println("first and second true");
-                }
-                if (!first && !second) {
-                    System.out.println("first and second false");
-                }
-                return first && second;
-            }
-            @Override
-            protected void process(List<Integer> chunks) {
-                int value = chunks.size();
-                System.out.println(value);
-            }
-            @Override
-            protected void done() {
-                try {
-                    Boolean status = get();
-                    System.out.println(status);
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        swingWorker.execute();
-    }
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /**
      * Swing Worker
      * while searching files, the GUI can't still be used
@@ -318,7 +276,7 @@ public class MainUI {
     private void searchFilesWithSwingWorker(final String inputValue) {
         SwingWorker<Boolean, File> fileWorker = new SwingWorker<Boolean, File>() {
             @Override
-            protected Boolean doInBackground() throws Exception {
+            protected Boolean doInBackground() {
                 // Get the selected driver
                 Object selectedDriver = driverSelector.getSelectedItem();
                 if (selectedDriver == null) {
@@ -397,7 +355,7 @@ public class MainUI {
     }
     /**
      * Swing Worker
-     * while searching files, the GUI can't still be used
+     * while searching files, the GUI can still be used
      * files get listed instand
      */
     private void searchPathsWithSwingWorker() {
@@ -415,15 +373,15 @@ public class MainUI {
                 File directory = new File(directoryName);
                 if (directory.exists()) {
                     // get All files
-                    Collection<File> all = new ArrayList<File>();
+                    Collection<File> all = new ArrayList<>();
                     addTree(new File(pathInput.getText()), all);
                     System.out.println("Path exists");
                 }
                 if (!directory.exists()) {
-                    directory.mkdir();
+
                     // If you require it to make the entire directory path including parents,
-                    // use directory.mkdirs(); here instead.
-                    System.out.println("Path doesn't exists");
+                    // use directory.mkdir(); here instead.
+                    System.out.println("Path doesn't exists" + directory.mkdir());
                 }
                 File file = new File(directoryName + "/" + fileName);
                 try {
@@ -465,7 +423,6 @@ public class MainUI {
     private static int finalTotal = 0;
     private void searchThreadWithSelectedType(String file, String typ) {
         File[] paths;
-        FileSystemView fsv = FileSystemView.getFileSystemView();
         paths = File.listRoots();
         for (File path : paths) {   // first path "C:\" <-- how to get directory's
             String str = path.toString();
@@ -486,6 +443,11 @@ public class MainUI {
         System.out.println("Total Matched Number of Files : " + finalTotal);
         countLabel.setText("Files : " + finalTotal);
     }
+
+    private void createUIComponents() {
+        // TODO: place custom component creation code here
+    }
+
     private class Finder extends SimpleFileVisitor<Path> {
         private final PathMatcher matcher;
         private int numMatches = 0;
@@ -496,7 +458,6 @@ public class MainUI {
         // Compares the glob pattern against
         // the file or directory name.
         void find(Path filePath) throws InterruptedException {
-            FileSystemView fsv = FileSystemView.getFileSystemView();
             Path name = filePath.getFileName();
             if (name != null && matcher.matches(name)) {
                 numMatches++;
@@ -505,7 +466,7 @@ public class MainUI {
                 DefaultTableModel model = (DefaultTableModel) listTable.getModel();
                 model.setColumnIdentifiers(new String[]{"Path","Files Names"});
                 listTable.setModel(model);
-                /**
+                /*
                  * a = 1, i = 0
                  * if i < a create new row with filePath
                  * than make a+1 so "a" is bigger than "i" again for the next round
@@ -578,24 +539,6 @@ public class MainUI {
             }
         }
     }
-    private void searchAll(File file, Collection<File> all) {
-        File[] files = file.listFiles();        // File [] files = list of all files
-        if (files != null) {
-            for (File child : files) {          // difference between the child(one file) and all files
-                all.add(child);                 // add the selected file(child) to all files and repeat
-                searchAll(child, all);
-                row = new Object[2];
-                DefaultTableModel model = (DefaultTableModel) listTable.getModel();
-                model.setColumnIdentifiers(new String[]{"Path","Files Names"});
-                listTable.setModel(model);
-                for (File value : files) {
-                    row[0] = value;
-                    row[1] = value.getName();
-                    model.addRow(row);
-                }
-            }
-        }
-    }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /** ComboBox for driver Selection -> select driver for smaller amount (search speed increase)
@@ -616,16 +559,15 @@ public class MainUI {
             public void actionPerformed(ActionEvent e) {
                 if (e.getSource() == driverSelector) {
                     // Get the selected driver
-                    String SD = null;
+                    String SD;
                     Object selectedItem = driverSelector.getSelectedItem();
                     if (selectedItem == null) {
                         // "All" option is selected
                         driver = "All";
-                        SD = driver;
-                    } else if (selectedItem != null) {
+                    } else {
                         driver = selectedItem.toString();
-                        SD = driver;
                     }
+                    SD = driver;
                     System.out.println("Selected driver: " + driver);
                     new driverGetter();
                     dirLabel.setText(SD);
@@ -640,12 +582,11 @@ public class MainUI {
         }
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    private void selectDataType() throws IOException {
+    private void selectDataType() {
         //typScann();
         dataType.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                TableColumnModel columns = listTable.getColumnModel();
 
                 if (e.getSource()==dataType) {
                     if (dataType.getSelectedItem()=="**") {
@@ -720,7 +661,7 @@ public class MainUI {
     }
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     private static void copyToClipboard(String content) {
-        StringSelection stringSelection = new StringSelection(content);
+        StringSelection stringSelection;
         if (content.length() > 0) {
             stringSelection = new StringSelection(content);
         } else {
@@ -738,48 +679,5 @@ public class MainUI {
                 throw new RuntimeException(e);
             }
         }
-    }
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    private static class FileSearchTask implements Runnable {
-
-        private final File rootDirectory;
-        private final String searchString;
-        private final String fileType;
-        private boolean done;
-        private int count;
-
-        private FileSearchTask(File rootDirectory, String searchString, String fileType) {
-            this.rootDirectory = rootDirectory;
-            this.searchString = searchString;
-            this.fileType = fileType;
-        }
-        @Override
-        public void run() {
-            search(rootDirectory, searchString, fileType);
-            done = true;
-            //publish(count);
-        }
-        private void search(File rootDirectory, String searchString, String fileType) {
-            File[] files = rootDirectory.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (file.isDirectory()) {
-                        search(file, searchString, fileType);
-                    } else if (file.getName().endsWith(fileType) && file.getName().contains(searchString)) {
-                        count++;
-                    }
-                }
-            }
-        }
-        public synchronized void waitUntilDone() {
-            while (!done) {
-                try {
-                    wait();
-                } catch (InterruptedException e) {
-                    // ignore
-                }
-            }
-        }
-
     }
 }
