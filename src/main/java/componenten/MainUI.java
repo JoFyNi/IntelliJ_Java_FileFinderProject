@@ -48,9 +48,6 @@ public class MainUI {
     private Object[] row;
     private static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
-    // Tutorials/ help
-    // editable JTable https://www.codejava.net/java-se/swing/editable-jtable-example
-    // https://www.youtube.com/watch?v=xk4_1vDrzzo&list=TLPQMjMxMTIwMjJsbEKGZ80Atg&index=6
     public MainUI() {
         pathInput.setText("C:\\Users\\Default\\Documents");
         fileInput.setText("file");
