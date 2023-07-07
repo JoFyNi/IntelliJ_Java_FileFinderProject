@@ -219,12 +219,12 @@
               <text value="files: 0"/>
             </properties>
           </component>
-          <component id="18045" class="javax.swing.JLabel" binding="LICENCE_LABEL" custom-create="true">
+          <component id="18045" class="javax.swing.JLabel" binding="LICENCE_LABEL">
             <constraints>
               <grid row="0" column="9" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <font name="Leelawadee UI" size="12" style="1"/>
+              <font size="12" style="1"/>
               <text value="2023 by JoFyNi"/>
             </properties>
           </component>

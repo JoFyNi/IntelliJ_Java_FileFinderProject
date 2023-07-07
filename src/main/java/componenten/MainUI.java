@@ -48,7 +48,7 @@ public class MainUI {
     private Object[] row;
     private static final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
-    public MainUI() {
+    public MainUI() throws IOException, InterruptedException {
         pathInput.setText("C:\\Users\\Default\\Documents");
         fileInput.setText("file");
         buttons();
@@ -439,10 +439,6 @@ public class MainUI {
         }
         System.out.println("Total Matched Number of Files : " + finalTotal);
         countLabel.setText("Files : " + finalTotal);
-    }
-
-    private void createUIComponents() {
-        // TODO: place custom component creation code here
     }
 
     private class Finder extends SimpleFileVisitor<Path> {
