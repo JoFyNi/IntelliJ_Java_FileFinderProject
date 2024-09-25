@@ -1,6 +1,5 @@
 package componenten;
 
-import javax.swing.filechooser.FileSystemView;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
@@ -19,7 +18,6 @@ public class searchThreadForFileList extends Thread {
      */
     public searchThreadForFileList(File file, Collection<File> fileList) {
         File[] paths;
-        FileSystemView fsv = FileSystemView.getFileSystemView();
 
         paths = File.listRoots();
 

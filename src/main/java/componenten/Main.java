@@ -2,21 +2,20 @@ package componenten;
 
 import javax.swing.*;
 import java.io.IOException;
+
 public class Main {
-    // Main Method that starts the programm
+
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    createGUI();
-                } catch (InterruptedException | IOException e) {
-                    throw new RuntimeException(e);
-                }
+        SwingUtilities.invokeLater(() -> {
+            try {
+                createGUI();
+            } catch (InterruptedException | IOException e) {
+                throw new RuntimeException(e);
             }
         });
     }
-    // createGUI is creating and opening a JFrame (the programm)
+
+    // Erstelle die GUI für das Programm
     private static void createGUI() throws IOException, InterruptedException {
         MainUI ui = new MainUI();
         JPanel root = ui.getRootPanel();
@@ -24,7 +23,7 @@ public class Main {
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setContentPane(root);
         frame.pack();
-        frame.setSize(1000,600);
+        frame.setSize(1000, 600);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }

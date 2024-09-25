@@ -40,6 +40,7 @@ public class FileSearchTasks implements Runnable {
                     foundFiles.add(file);
                     count++;
                 }
+                System.err.println(count);
             }
         }
     }

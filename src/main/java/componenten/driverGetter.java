@@ -6,12 +6,12 @@ import java.util.Enumeration;
 import java.util.ServiceLoader;
 
 public class driverGetter {
-    public driverGetter(){
+    public driverGetter() {
         ServiceLoader<Driver> loadedDrivers = ServiceLoader.load(Driver.class);
         for (Driver driver : loadedDrivers) {
-            // do something with Driver
             Enumeration<Driver> drivers = DriverManager.getDrivers();
-            System.out.printf(drivers+"");
+            System.out.printf(drivers + "");
+            System.out.printf(driver + "");
         }
     }
 }
